@@ -93,10 +93,11 @@ def hash(M: int):
         res = (res << 32) | H[i]
     return res
 
-def sha256(msg):
-    pad_msg = padding(msg)
+def sha256(msg: bytes) -> bytes: 
+    msg_as_int = int.from_bytes(msg, 'big')
+    pad_msg = padding(msg_as_int)
     hashed_msg = hash(pad_msg)
-    return hashed_msg    
+    return hashed_msg.to_bytes(32, 'big')    
 
 if __name__ == "__main__":
     Len = 1
