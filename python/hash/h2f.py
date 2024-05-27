@@ -46,8 +46,7 @@ def strxor(s1: bytes, s2: bytes):
 def expand_message(msg: bytes, dst: bytes, len_in_bytes: int) -> bytes:
     ell =  math.ceil(len_in_bytes / b_in_bytes)
     if ell > 255 or len_in_bytes > 65535 or len(dst) > 255:
-        print("The length of the requested output in bytes is greater than the lesser of (255 * b_in_bytes) or 2^16-1")
-        return
+        raise Exception("The length of the requested output in bytes is greater than the lesser of (255 * b_in_bytes) or 2^16-1")
     dst_prime = dst + I2OSP(len(dst), 1)
     Z_pad = I2OSP(0, s_in_bytes)
     l_i_b_str = I2OSP(len_in_bytes, 2)
