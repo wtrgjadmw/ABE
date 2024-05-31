@@ -1,3 +1,5 @@
+import itertools, copy
+
 def generate_LSSS(F):
     M, L, m, d = [[1]], F, 1, 1
     z = 0
@@ -42,5 +44,44 @@ def generate_LSSS(F):
             print(L)
     return M
 
-M = generate_LSSS([[[["B", ["A", "C", 1], 2], ["C", "D", "E", 2], 1], ["E", "F", "G", "H", 3], 2]])
-print(M)
+def det_mat(matrix: list[list[float]]):
+    # Base case for 1x1 matrix
+    if len(matrix) == 1:
+        return matrix[0][0]
+    
+    # Base case for 2x2 matrix
+    if len(matrix) == 2:
+        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+    
+    det = 0
+    for c in range(len(matrix)):
+        sub_matrix = [row[:c] + row[c+1:] for row in (matrix[:0] + matrix[1:])]
+        det += ((-1) ** c) * matrix[0][c] * det_mat(sub_matrix)
+    
+    return det
+
+def inv_mat(mat: list[list[float]]):
+    det = det_mat(mat)
+    inv = copy.deepcopy(mat)
+    for i in range(len(mat)):
+        for j in range(len(mat[0])):
+            cofac_mat = []
+            for ii in range(len(mat)):
+                if ii == i:
+                    continue
+                cofac_mat.append([])
+                for jj in range(len(mat[0])):
+                    if jj != j:
+                        cofac_mat[-1].append(mat[ii][jj])
+            print(cofac_mat)
+            cofac_det = det_mat(cofac_mat)
+            print(cofac_det)
+            cofactor = cofac_det / det
+            if (i + j) % 2:
+                cofactor *= -1
+            inv[j][i] = cofactor
+    return inv
+
+# M = generate_LSSS([[[["B", ["A", "C", 1], 2], ["C", "D", "E", 2], 1], ["E", "F", "G", "H", 3], 2]])
+# print(M)
+print(inv_mat([[1, 1, -1], [-2, 0, 1], [0, 2, 1]]))
