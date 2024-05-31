@@ -30,7 +30,7 @@ def generate_LSSS(F):
                     M[i][j] = x
                     x = x * a
             for i in range(z + m2, m1 + m2 - 1):
-                L[i] = L1[i-m2]
+                L[i] = L1[i-m2+1]
                 for j in range(d1):
                     M[i][j] = M1[i-m2+1][j]
                 for j in range(d1, d1 + d2 - 1):
@@ -42,5 +42,5 @@ def generate_LSSS(F):
             print(L)
     return M
 
-M = generate_LSSS([["A", ["D", ["B", "C", 2], 1], 2]])
+M = generate_LSSS([[[["B", ["A", "C", 1], 2], ["C", "D", "E", 2], 1], ["E", "F", "G", "H", 3], 2]])
 print(M)
