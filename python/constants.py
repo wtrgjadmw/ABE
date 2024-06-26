@@ -1,4 +1,5 @@
-from util import bits_of
+import random
+from util import bits_of, is_qr
 
 # BLS12-381
 
@@ -30,6 +31,40 @@ class Fp:
     def __pow__(self, exponent: int):
         result = pow(self.value, exponent, self.p)
         return Fp(result)
+    
+    # reference: https://zenn.dev/peria/articles/c6afc72b6b003c
+    def sqrt(self):
+        if not is_qr(self.value, self.p):
+            return Fp(0), False
+        pmod8 = self.p % 8
+        if pmod8 == 3 or pmod8 == 7:
+            res = self ** ((self.p + 1) >> 2)
+            return res, True
+        if pmod8 == 5:
+            res = self ** ((self.p + 3) >> 3)
+            if res ** 2 == self:
+                res *= Fp(2) ** ((self.p - 1) >> 2)
+            return res, True
+        if pmod8 == 1:
+            z = random.randint(0, self.p - 1)
+            while is_qr(z, self.p):
+                z = random.randint(0, self.p - 1)
+            z = Fp(z)
+            t = self.p - 1
+            s = 0
+            while t % 2 == 0:
+                t >>= 1
+                s += 1
+            A = self ** t
+            D = z ** t
+            m = 0
+            for i in range(s):
+                tmp = (A * (D ** m)) ** (2 ** (s - 1 - i))
+                if tmp.value == self.p-1:
+                    m = m + (2 ** i)
+            res = (self ** ((t + 1) // 2)) * (D ** (m // 2))
+            return res, True
+        return Fp(0), False
     
     def sign(self):
         if self.value > ((self.p - 1) / 2):
@@ -110,9 +145,9 @@ k = [[Fp(k_[i][j]) for j in range(len(k_[i]))] for i in range(len(k_))]
 
     
 class pointFp:
-    def __init__(self, coord, coordinate: list[Fp], coefficients: list[Fp]):
+    def __init__(self, coord_type, coordinate: list[Fp], coefficients: list[Fp]):
         self.p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
-        self.coord = coord
+        self.coord_type = coord_type
         self.X = coordinate[0]
         self.Y = coordinate[1]
         self.Z = coordinate[2]
@@ -129,7 +164,7 @@ class pointFp:
     # Computation cost: 8M + 3S + 3m_a + 2m_3b + 15a (for the case a != 0)
     def __add__(self, other):
         assert self.a == other.a and self.b == other.b, "their curves are different"
-        assert self.coord == "projective", "the coordinate type is %s" % self.coord
+        assert self.coord_type == "projective", "the coordinate type is %s" % self.coord_type
 
         t0 = self.X * other.X
         t1 = self.Y * other.Y
@@ -171,9 +206,8 @@ class pointFp:
         t0 = t3 * t1
         Z3 = t5 * Z3
         Z3 = Z3 + t0
-        return pointFp(coord="projective", coordinate=[X3, Y3, Z3], coefficients=[self.a, self.b])
+        return pointFp(coord_type="projective", coordinate=[X3, Y3, Z3], coefficients=[self.a, self.b])
         
-    
     def double(self):
         t0 = self.X * self.X
         t1 = self.Y * self.Y
@@ -206,7 +240,7 @@ class pointFp:
         Z3 = t2 * t1
         Z3 = Z3 + Z3
         Z3 = Z3 + Z3
-        return pointFp(coord="projective", coordinate=[X3, Y3, Z3], coefficients=[self.a, self.b])
+        return pointFp(coord_type="projective", coordinate=[X3, Y3, Z3], coefficients=[self.a, self.b])
     
     def scalar_mul(self, n):
         res = self
@@ -216,8 +250,8 @@ class pointFp:
                 res = res + self
         return res
         
-    def test_on_curve(self):
-        if self.coord == "projective":
+    def check_on_curve(self):
+        if self.coord_type == "projective":
             X_ = self.X / self.Z
             Y_ = self.Y / self.Z
             gx = X_ ** 3 + self.a * X_ + self.b
@@ -226,6 +260,27 @@ class pointFp:
         else:
             raise Exception("not implemented")
     
+    def check_rP_is_inf(self):
+        tmp = self
+        # if self.coord_type != "affine":
+        #     tmp = pointFp(coord_type="affine", coordinate=[self.X / self.Z, self.Y / self.Z, Fp(1)], coefficients=[self.a, self.b])
+        inf = tmp.scalar_mul(r)
+        if inf.Z.value == 0:
+            return True
+        print(inf.X.value, inf.Y.value, inf.Z.value)
+        return False
         
-         
+def random_pointFp(p: int, coefficients: list[Fp]):
+    sqrtIsExist = False
+    while not sqrtIsExist:
+        X3 = Fp(random.randint(0, p-1))
+        Y3, sqrtIsExist = (X3**3 + coefficients[0]*X3 + coefficients[1]).sqrt()
+    res = pointFp(coord_type="projective", coordinate=[X3, Y3, Fp(1)], coefficients=coefficients)
+    res.check_on_curve()
+    hashed_point = res.scalar_mul(h1)
+    hashed_point.check_on_curve()
+    # TODO: check if rP is infinity point
+    return hashed_point
         
+if __name__ == "__main__":
+    random_point = random_pointFp(p, [a, b])

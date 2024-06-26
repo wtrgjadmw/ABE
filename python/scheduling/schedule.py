@@ -89,7 +89,7 @@ def make_mem_task_definition(
             if opcode == "MUL" or opcode == "ADD" or opcode == "SUB":
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(INPUT_mem_r)\n".format(mem_value_name))
-                    f_write.write("\tS += {0}-1 < {1}\n".format(operand, mem_value_name))
+                    f_write.write("\tS += {0} < {1}\n".format(operand, mem_value_name))
                 else:
                     f_write.write("\t{0} += INPUT_mem_r\n".format(mem_value_name))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
@@ -158,7 +158,6 @@ def find_mistake(
 
 def make_pyschedule(
     dir_name,
-    file_name,
     formulas,
     mem_table_list,
     split_ope,
@@ -173,7 +172,7 @@ def make_pyschedule(
     input_num,
 ):
 
-    f_write = open("{}/{}.py".format(dir_name, file_name), "w")
+    f_write = open("{}/schedule{}.py".format(dir_name, depth), "w")
     f_write.write("from pyschedule import Scenario, solvers, plotters, alt\n\n\n")
     f_write.write("def solve():\n")
 
@@ -187,7 +186,7 @@ def make_pyschedule(
         pre_cycle = int(pre_sche_result[-1][3])
     f_write.write("\thorizon = {0}\n".format(max(pre_cycle + 90, input_num // 2 + 50)))
 
-    f_write.write('\tS = Scenario("' + file_name + '", horizon=horizon)\n')
+    f_write.write('\tS = Scenario("schedule{}", horizon=horizon)\n'.format(depth))
 
     f_write.write("\n\t# resource\n")
     f_write.write("\tMUL = S.Resources('MUL', num={0}, size={1})\n".format(MULnum, MULstage))
@@ -310,9 +309,9 @@ def make_pyschedule(
     f_write.write("\tcycles = int(solution[-1][3])\n\n")
 
     # TODO: pic_file_nameの変更
-    f_write.write('\tpic_file_name = "{}/{}.png"\n'.format(dir_name, file_name))
+    f_write.write('\tpic_file_name = "{}/schedule{}.png"\n'.format(dir_name, depth))
     f_write.write(
-        "\tif(S.solution() != []):\n\t\tplotters.matplotlib.plot(S,img_filename=pic_file_name, vertical_text=True, fig_size=(cycles*0.25+3, 5))\n\n"
+        "\tif(S.solution() != []):\n\t\tplotters.matplotlib.plot(S,img_filename=pic_file_name, vertical_text=False, fig_size=(cycles*0.25+3, 5))\n\n"
     )
     f_write.write("\treturn solution\n\n")
     return
@@ -366,7 +365,7 @@ if __name__ == "__main__":
     )
 
     # exec(open("./" + "sche_test.py", 'r', encoding="utf-8").read())
-    file_name = func_name
+    dir_name = "{}/scheduling/{}".format(os.getcwd(),func_name)
 
     # スケジューリングの解を保存するリスト
     solution = []
@@ -377,7 +376,7 @@ if __name__ == "__main__":
     print("output = ", end="")
     print(output_value)
     split_ope.append([])
-    os.makedirs(file_name, exist_ok=True)
+    os.makedirs(dir_name, exist_ok=True)
 
     for i in range(len(split_ope)):
         print(i, len(split_ope[i]), split_ope[i])
@@ -389,10 +388,8 @@ if __name__ == "__main__":
         # pre_sche_result, split_ope = find_mistake(split_ope, i, pre_sche_result)
         if len(split_ope[i]) == 0:
             continue
-        write_file = "{0}_{1}".format(file_name, i)
         make_pyschedule(
-            file_name,
-            write_file,
+            dir_name,
             formulas,
             mem_table_list,
             split_ope,
@@ -408,7 +405,7 @@ if __name__ == "__main__":
         print(i)
         # print(split_ope[i])
         # make_pyschedule(file_name, formulas, mem_table, split_ope, pre_sche_result, i, write_file, input_value, mul_num, add_num, mul_num_list, add_num_list, input_num)
-        scheduling_i = importlib.import_module("{}.{}".format(file_name, write_file))
+        scheduling_i = importlib.import_module("scheduling.{}.schedule{}".format(func_name, i))
         solution = scheduling_i.solve()
         if solution == []:
             raise Exception("no solution found in schedule_{0}".format(i))
@@ -418,7 +415,7 @@ if __name__ == "__main__":
     
     mem_table = merge_dicts(mem_table_list)
 
-    f = open(file_name + ".txt", "w")
+    f = open(dir_name + "/result.txt", "w")
     print("input = ", file=f, end="")
     print(input_value, file=f)
     print("output = ", file=f, end="")

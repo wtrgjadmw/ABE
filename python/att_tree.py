@@ -7,6 +7,7 @@ class att_node:
         self.index = index
         self.threshold_num = threshold_num
         self.children = children
+        self.polynomial = [0] * threshold_num
         
 
 def split_policy_str(plc_str: str):
@@ -34,6 +35,7 @@ def split_policy_str(plc_str: str):
 def generate_policy_tree(plc_str: str):
     rpn = split_policy_str(plc_str)
     stack = []
+    reafs = []
     index = 0
     for token in rpn:
         if token == '&':
@@ -49,10 +51,11 @@ def generate_policy_tree(plc_str: str):
             index += 1
             stack.append(new_tree)
         else:
+            reafs.append(token)
             new_node = att_node(att=token, index=index, threshold_num=1, children=None)
             index += 1
             stack.append(new_node)
-    return stack[0]
+    return stack[0], reafs
 
 def check_plc_sat(plc_tree:att_node, att_list:list[str]) -> bool:
     if plc_tree.children == None:
@@ -66,10 +69,10 @@ def check_plc_sat(plc_tree:att_node, att_list:list[str]) -> bool:
     return cnt >= plc_tree.threshold_num
 
 policy = "A | ((B & C) | D)"
-plc_tree = generate_policy_tree(policy)
-att_list1 = ['A']
-att_list2 = ['B']
-att_list3 = ['B', 'C']
-print(check_plc_sat(plc_tree, att_list1))
-print(check_plc_sat(plc_tree, att_list2))
-print(check_plc_sat(plc_tree, att_list3))
+plc_tree, y = generate_policy_tree(policy)
+# att_list1 = ['A']
+# att_list2 = ['B']
+# att_list3 = ['B', 'C']
+# print(check_plc_sat(plc_tree, att_list1))
+# print(check_plc_sat(plc_tree, att_list2))
+# print(check_plc_sat(plc_tree, att_list3))

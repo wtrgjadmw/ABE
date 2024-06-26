@@ -1,5 +1,7 @@
+func_name = "yrecover"
+
 # ファイルの読み込み
-file_path = '/mnt/data/ladderMul.csv'
+file_path = './scheduling/{}.txt'.format(func_name)
 
 # 変換後の内容を保存するリスト
 converted_lines = []
@@ -23,9 +25,9 @@ with open(file_path, 'r') as file:
         converted_lines.append(converted_line)
 
 # 変換した内容を新しいファイルに保存
-new_file_path = '/mnt/data/converted_ladderMul.csv'
+new_file_path = './scheduling/{}.csv'.format(func_name)
 with open(new_file_path, 'w') as new_file:
     for converted_line in converted_lines:
         new_file.write(converted_line + '\n')
 
-new_file_path
+
