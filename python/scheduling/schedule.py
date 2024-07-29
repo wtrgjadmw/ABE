@@ -294,7 +294,7 @@ def make_pyschedule(
         if line[0] in output_value:
             f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(line[0]))
             f_write.write("\t{0}_w += alt(INPUT_mem_w)\n".format(line[0]))
-            f_write.write("\tS += {0}-1 <= {0}_w\n\n".format(line[0]))
+            f_write.write("\tS += {0} <= {0}_w\n\n".format(line[0]))
     mem_table_list.append(tmp_mem_table)
 
     f_write.write("\tsolvers.mip.solve(S,msg=1,ratio_gap=1.01)\n\n")
@@ -320,7 +320,7 @@ def make_pyschedule(
 if __name__ == "__main__":
     start_time = time.perf_counter()
     psr = argparse.ArgumentParser(
-        usage="schedule.py -c <curve_group> -p <p[bit]>",
+        usage="schedule.py -mn <number_of_multipliers> -ms <stages_of_multiplier> -a <number_of_adders> -n <algorithm_name>",
         description="Execute scheduling with a 7-stage pipelined Fp montgomery multiplier, four Fp adders/subtractors, an Fp inversion operator",
     )
     psr.add_argument(
@@ -339,6 +339,12 @@ if __name__ == "__main__":
         "-a", "--addNum", default=4, help="number of Fp adders/subtractors (default is 4)"
     )
     psr.add_argument(
+        "-as",
+        "--addStage",
+        default=1,
+        help="number of stages of Fp adder/subtractor",
+    )
+    psr.add_argument(
         "-rn", "--readNum", default=4, help="number of RAM read ports (default is 4)"
     )
     # psr.add_argument("-c", "--curve", required=True, help="curve group")
@@ -354,12 +360,13 @@ if __name__ == "__main__":
     mul_num = int(args.mulNum)
     mul_stage = int(args.mulStage)
     add_num = int(args.addNum)
+    add_stage = int(args.addStage)
     read_num = int(args.readNum)
     # curve_group = args.curve
     # curve_name = args.characteristic
     algo_name = args.name
 
-    func_name = "{2}_mul{0}_add{1}".format(mul_num, add_num, algo_name)
+    func_name = "{4}_mul{0}_{1}_add{2}_{3}".format(mul_num, mul_stage, add_num, add_stage, algo_name)
     formulas = read_formula_csv(
         "/Users/fukudamomoko/Desktop/research/ABE/python/scheduling/{}.csv".format(algo_name)
     )
