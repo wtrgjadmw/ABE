@@ -1,0 +1,16 @@
+`define ALU_INST_BITS 48
+`define ADDR_BITS 5
+`define CAL_MUX_BIT 2
+
+`define MM_INST_BITS 8
+`define ADD_INST_BITS 7
+
+`define INDEX_READA 0
+`define INDEX_READB 8
+`define INDEX_READC 16
+`define INDEX_READD 23
+`define INDEX_ISSUB 30
+`define INDEX_MMVAL 31
+`define INDEX_MASVAL 32
+`define INDEX_WRITEA 33
+`define INDEX_WRITEB 41
