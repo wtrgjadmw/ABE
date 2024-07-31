@@ -4,7 +4,7 @@ import sys
 import argparse
 import traceback
 import csv
-from inst_lib import ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
+from inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
 
 
 def value2num(value):
@@ -15,14 +15,6 @@ def value2num(value):
     else:
         raise Exception("the length of value: {0} is {1}".format(value, len(value)))
     return num
-
-class solutionData:
-    def __init__(self, opr1, opr2, operator, start, end) -> None:
-        self.opr1 = opr1
-        self.opr2 = opr2
-        self.operator = operator
-        self.start = start
-        self.end = end
 
 
 # cが10clk目で出力 -> アドレス2に保存 -> 15clk目でオペランドとして最後に呼び出される場合，
@@ -99,7 +91,7 @@ class schedulingData:
             if "_mem" not in value_name:
                 formula = self.find_formula(value_name)
                 self.solution_data_list[value_name] = solutionData(
-                    opr1=formula[2], opr2=formula[3], operator=operator_name, start=start_time, end=end_time)
+                    opr1=formula[2], opr2=formula[3], operator=operator_name, operation=formula[1], start=start_time, end=end_time)
                 # print("{}, {}".format(value_name, start_time))
 
         self.operator_init_seq = [[] for i in range(self.seq_finish_time + 1)]
@@ -149,14 +141,14 @@ class schedulingData:
                 self.mem_addr_list.append(end_time)
             # print(self.mem_addr_list)
 
-    def set_operator_inst(self, data: solutionData, value_name):
+    def set_operator_inst(self, data: solutionData):
         for i in range(2):
             operand_name = data.opr1 if i == 0 else data.opr2
             time = data.start
             if operand_name in self.input:
                 # print(time, value_name, operand_name, self.const_addr_list[operand_name])
                 self.inst_list[time].set_operator_inst(
-                    operator=data.operator,
+                    operation=data.operation,
                     operand_index=i,
                     raddr=self.const_addr_list[operand_name],
                     mux=0,
@@ -166,17 +158,17 @@ class schedulingData:
             if time > operand_data.end:
                 ram_addr = self.mem_data_list[operand_name].addr
                 # print(time, value_name, operand_name, ram_addr)
-                self.inst_list[time].set_operator_inst(operator=data.operator, operand_index=i, raddr=ram_addr, mux=0, mask=self.is_ladder)
+                self.inst_list[time].set_operator_inst(operation=data.operation, operand_index=i, raddr=ram_addr, mux=0, mask=self.is_ladder)
                 continue
             operand_operator = operand_data.operator
             # print(time, value_name, operand_name, operand_operator)
             if "MUL" in operand_operator:
-                self.inst_list[time].set_operator_inst(operator=data.operator, operand_index=i, raddr=0, mux=1, mask=self.is_ladder)
-            elif "ADD" in operand_operator or "SUB" in operand_operator:
-                self.inst_list[time].set_operator_inst(operator=data.operator, operand_index=i, raddr=0, mux=2, mask=self.is_ladder)
+                self.inst_list[time].set_operator_inst(operation=data.operation, operand_index=i, raddr=0, mux=1, mask=self.is_ladder)
+            elif "MAS" in operand_operator:
+                self.inst_list[time].set_operator_inst(operation=data.operation, operand_index=i, raddr=0, mux=2, mask=self.is_ladder)
             elif "INV" in operand_operator:
                 # TODO: fix
-                self.inst_list[time].set_operator_inst(operator=data.operator, operand_index=i, raddr=0, mux=3, mask=self.is_ladder)
+                self.inst_list[time].set_operator_inst(operation=data.operation, operand_index=i, raddr=0, mux=3, mask=self.is_ladder)
             else:
                 raise Exception("invalid operator: {}".format(operand_operator))
 
@@ -185,7 +177,7 @@ class schedulingData:
         for value_name, data in self.solution_data_list.items():
             if value_name in self.input:
                 continue
-            self.set_operator_inst(data, value_name)
+            self.set_operator_inst(data)
 
     def ram_result_input(self):
         for out in self.output:

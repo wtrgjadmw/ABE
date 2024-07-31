@@ -9,8 +9,7 @@ def solve():
 	MUL = S.Resources('MUL', num=1, size=6)
 	MUL_in = S.Resources('MUL_in', num=1)
 	INV = S.Resource('INV')
-	ADD = S.Resources('ADD', num=1, periods=range(1, horizon))
-	SUB = S.Resources('SUB', num=1, periods=range(1, horizon))
+	MAS = S.Resources('MAS', num=1, periods=range(1, horizon))
 	INPUT_mem_w = S.Resource('INPUT_mem_w', size=2)
 	INPUT_mem_r = S.Resource('INPUT_mem_r', size=4)
 
@@ -168,7 +167,7 @@ def solve():
 	S += T11_mem1-1 <= T11
 
 	T12 = S.Task('T12', length=1, delay_cost=1)
-	T12 += alt(ADD)
+	T12 += alt(MAS)
 
 	T12_mem0 = S.Task('T12_mem0', length=1, delay_cost=1)
 	T12_mem0 += alt(INPUT_mem_r)
@@ -181,7 +180,7 @@ def solve():
 	S += T12_mem1-1 <= T12
 
 	T13 = S.Task('T13', length=1, delay_cost=1)
-	T13 += alt(SUB)
+	T13 += alt(MAS)
 
 	T13_mem0 = S.Task('T13_mem0', length=1, delay_cost=1)
 	T13_mem0 += alt(INPUT_mem_r)
@@ -194,7 +193,7 @@ def solve():
 	S += T13_mem1-1 <= T13
 
 	T15 = S.Task('T15', length=1, delay_cost=1)
-	T15 += alt(ADD)
+	T15 += alt(MAS)
 
 	T15_mem0 = S.Task('T15_mem0', length=1, delay_cost=1)
 	T15_mem0 += alt(INPUT_mem_r)
@@ -245,7 +244,7 @@ def solve():
 	S += T17_mem1-1 <= T17
 
 	T18 = S.Task('T18', length=1, delay_cost=1)
-	T18 += alt(ADD)
+	T18 += alt(MAS)
 
 	T18_mem0 = S.Task('T18_mem0', length=1, delay_cost=1)
 	T18_mem0 += alt(INPUT_mem_r)
@@ -258,7 +257,7 @@ def solve():
 	S += T18_mem1-1 <= T18
 
 	T19 = S.Task('T19', length=1, delay_cost=1)
-	T19 += alt(SUB)
+	T19 += alt(MAS)
 
 	T19_mem0 = S.Task('T19_mem0', length=1, delay_cost=1)
 	T19_mem0 += alt(INPUT_mem_r)
@@ -271,7 +270,7 @@ def solve():
 	S += T19_mem1-1 <= T19
 
 	T21 = S.Task('T21', length=1, delay_cost=1)
-	T21 += alt(SUB)
+	T21 += alt(MAS)
 
 	T21_mem0 = S.Task('T21_mem0', length=1, delay_cost=1)
 	T21_mem0 += alt(INPUT_mem_r)
@@ -338,7 +337,7 @@ def solve():
 	S += T23_mem0-1 <= T23
 
 	T25 = S.Task('T25', length=1, delay_cost=1)
-	T25 += alt(ADD)
+	T25 += alt(MAS)
 
 	T25_mem0 = S.Task('T25_mem0', length=1, delay_cost=1)
 	T25_mem0 += alt(INPUT_mem_r)
@@ -367,7 +366,7 @@ def solve():
 	S += Z2_new <= Z2_new_w
 
 	X2_new = S.Task('X2_new', length=1, delay_cost=1)
-	X2_new += alt(SUB)
+	X2_new += alt(MAS)
 
 	S += 0<X2_new
 
@@ -386,7 +385,7 @@ def solve():
 	S += X2_new <= X2_new_w
 
 	X1_new = S.Task('X1_new', length=1, delay_cost=1)
-	X1_new += alt(SUB)
+	X1_new += alt(MAS)
 
 	S += 0<X1_new
 
@@ -405,7 +404,7 @@ def solve():
 	S += X1_new <= X1_new_w
 
 	Z1_new = S.Task('Z1_new', length=1, delay_cost=1)
-	Z1_new += alt(ADD)
+	Z1_new += alt(MAS)
 
 	S += 0<Z1_new
 

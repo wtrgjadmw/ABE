@@ -9,8 +9,7 @@ def solve():
 	MUL = S.Resources('MUL', num=1, size=6)
 	MUL_in = S.Resources('MUL_in', num=1)
 	INV = S.Resource('INV')
-	ADD = S.Resources('ADD', num=1, periods=range(1, horizon))
-	SUB = S.Resources('SUB', num=1, periods=range(1, horizon))
+	MAS = S.Resources('MAS', num=1, periods=range(1, horizon))
 	INPUT_mem_w = S.Resource('INPUT_mem_w', size=2)
 	INPUT_mem_r = S.Resource('INPUT_mem_r', size=4)
 
@@ -116,7 +115,7 @@ def solve():
 	S += r13_mem1-1 <= r13
 
 	r2 = S.Task('r2', length=1, delay_cost=1)
-	r2 += alt(ADD)
+	r2 += alt(MAS)
 
 	r2_mem0 = S.Task('r2_mem0', length=1, delay_cost=1)
 	r2_mem0 += alt(INPUT_mem_r)
@@ -124,7 +123,7 @@ def solve():
 	S += r2_mem0-1 <= r2
 
 	r7 = S.Task('r7', length=1, delay_cost=1)
-	r7 += alt(ADD)
+	r7 += alt(MAS)
 
 	r7_mem0 = S.Task('r7_mem0', length=1, delay_cost=1)
 	r7_mem0 += alt(INPUT_mem_r)
@@ -137,7 +136,7 @@ def solve():
 	S += r7_mem1-1 <= r7
 
 	r8 = S.Task('r8', length=1, delay_cost=1)
-	r8 += alt(ADD)
+	r8 += alt(MAS)
 
 	r8_mem0 = S.Task('r8_mem0', length=1, delay_cost=1)
 	r8_mem0 += INPUT_mem_r
@@ -149,7 +148,7 @@ def solve():
 	S += r8_mem1-1 <= r8
 
 	r10 = S.Task('r10', length=1, delay_cost=1)
-	r10 += alt(SUB)
+	r10 += alt(MAS)
 
 	r10_mem0 = S.Task('r10_mem0', length=1, delay_cost=1)
 	r10_mem0 += INPUT_mem_r
@@ -234,7 +233,7 @@ def solve():
 	S += r16_mem1-1 <= r16
 
 	r17 = S.Task('r17', length=1, delay_cost=1)
-	r17 += alt(ADD)
+	r17 += alt(MAS)
 
 	r17_mem0 = S.Task('r17_mem0', length=1, delay_cost=1)
 	r17_mem0 += alt(INPUT_mem_r)
@@ -291,7 +290,7 @@ def solve():
 	S += Z1_new <= Z1_new_w
 
 	PY_new = S.Task('PY_new', length=1, delay_cost=1)
-	PY_new += alt(SUB)
+	PY_new += alt(MAS)
 
 	S += 0<PY_new
 

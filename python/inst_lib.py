@@ -1,6 +1,15 @@
 from inst_template import init_insts, Fpinv_insts, Fpinv_preprocess_insts, yrecover2_insts
 
 
+class solutionData:
+    def __init__(self, opr1, opr2, operator, operation, start, end) -> None:
+        self.opr1 = opr1
+        self.opr2 = opr2
+        self.operator = operator
+        self.operation = operation
+        self.start = start
+        self.end = end
+
 class ALUInstruction:
     def __init__(self) -> None:
         self.REGF_raddra = 0
@@ -36,9 +45,9 @@ class ALUInstruction:
         self.DRAM_addrb = 0
         self.DRAM_web = 0
 
-    def set_operator_inst(self, operator, operand_index, raddr: int, mux: int, mask=False):
+    def set_operator_inst(self, operation, operand_index, raddr: int, mux: int, mask=False):
         is_masked_addr = mask and raddr < 4
-        if "MUL" in operator:
+        if "MUL" == operation:
             if operand_index == 0:
                 self.REGF_raddra = raddr
                 self.REGF_raddr_maska = 1 if is_masked_addr else 0
@@ -48,7 +57,7 @@ class ALUInstruction:
                 self.REGF_raddr_maskb = 1 if is_masked_addr else 0
                 self.muxb = mux
             self.MM_val = 1
-        elif "ADD" in operator or "SUB" in operator:
+        elif "ADD" == operation or "SUB" == operation:
             if operand_index == 0:
                 self.REGF_raddrc = raddr
                 self.muxc = mux
@@ -56,9 +65,9 @@ class ALUInstruction:
                 self.REGF_raddrd = raddr
                 self.muxd = mux
             self.MAS_val = 1
-            self.issub = 1 if "SUB" in operator else 0
+            self.issub = 1 if "SUB" == operation else 0
         else:
-            raise Exception("invalid operator: {}".format(operator))
+            raise Exception("invalid operator: {}".format(operation))
 
     def set_mem_write(self, operator, waddr: int, mask=False):
         is_masked_addr = mask and waddr < 4
@@ -66,7 +75,7 @@ class ALUInstruction:
             self.REGF_waddra = waddr
             self.REGF_waddr_maska = 1 if is_masked_addr else 0
             self.REGF_wea = 1
-        elif "ADD" in operator or "SUB" in operator:
+        elif "MAS" in operator:
             self.REGF_waddrb = waddr
             self.REGF_waddr_maskb = 1 if is_masked_addr else 0
             self.REGF_web = 1

@@ -193,12 +193,7 @@ def make_pyschedule(
     f_write.write("\tMUL_in = S.Resources('MUL_in', num={0})\n".format(MULnum))
     f_write.write("\tINV = S.Resource('INV')\n")
     f_write.write(
-        "\tADD = S.Resources('ADD', num={0}, periods=range(1, horizon))\n".format(
-            ADDnum
-        )
-    )
-    f_write.write(
-        "\tSUB = S.Resources('SUB', num={0}, periods=range(1, horizon))\n".format(
+        "\tMAS = S.Resources('MAS', num={0}, periods=range(1, horizon))\n".format(
             ADDnum
         )
     )
@@ -215,7 +210,7 @@ def make_pyschedule(
     f_write.write("\tINPUT_mem_w = S.Resource('INPUT_mem_w', size=2)\n")
     f_write.write("\tINPUT_mem_r = S.Resource('INPUT_mem_r', size={})\n".format(read_num))
 
-    multi_resources = ["MUL", "MUL_in", "ADD"]
+    multi_resources = ["MUL", "MUL_in", "MAS"]
     # multi_resources = ["MUL", "MUL_in", "ADD", "MUL_mem", "ADD_mem"]
     single_resources = ["INV", "INPUT_mem_w", "INPUT_mem_r"]
 
@@ -250,16 +245,11 @@ def make_pyschedule(
             )
             f_write.write("\t" + line[0] + " += alt(MUL)\n")
             f_write.write("\tS += {0}>={0}_in\n\n".format(line[0]))
-        elif line[1] == "ADD":
+        elif line[1] == "ADD" or line[1] == "SUB":
             f_write.write(
                 "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
             )
-            f_write.write("\t" + line[0] + " += alt(ADD)\n\n")
-        elif line[1] == "SUB":
-            f_write.write(
-                "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
-            )
-            f_write.write("\t" + line[0] + " += alt(SUB)\n\n")
+            f_write.write("\t" + line[0] + " += alt(MAS)\n\n")
         elif line[1] == "INV":
             f_write.write(
                 "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
