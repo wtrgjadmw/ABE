@@ -2,9 +2,6 @@
 `define ADDR_BITS 5
 `define CAL_MUX_BIT 2
 
-`define MM_INST_BITS 8
-`define ADD_INST_BITS 7
-
 `define INDEX_READA 0
 `define INDEX_READB 8
 `define INDEX_READC 16

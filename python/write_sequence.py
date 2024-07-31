@@ -4,7 +4,7 @@ import sys
 import argparse
 import traceback
 import csv
-from write_header import write_header, write_raminit_aluram
+from inst_lib import ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
 
 
 def value2num(value):
@@ -15,185 +15,6 @@ def value2num(value):
     else:
         raise Exception("the length of value: {0} is {1}".format(value, len(value)))
     return num
-
-
-class ALUInstruction:
-    def __init__(self) -> None:
-        self.REGF_raddra = 0
-        self.REGF_raddr_maska = 0
-        self.muxa = 0
-        self.REGF_raddrb = 0
-        self.REGF_raddr_maskb = 0
-        self.muxb = 0
-        self.REGF_raddrc = 0
-        self.muxc = 0
-        self.REGF_raddrd = 0
-        self.muxd = 0
-
-        self.issub = 0
-        self.MM_val = 0
-        self.MAS_val = 0
-
-        self.REGF_waddra = 0
-        self.REGF_waddr_maska = 0
-        self.REGF_wea = 0
-        self.wmuxa = 0
-
-        self.REGF_waddrb = 0
-        self.REGF_waddr_maskb = 0
-        self.REGF_web = 0
-
-        self.condKey0 = 0
-        self.condKey1 = 0
-        self.conInst = 0
-        self.endInst = 0
-        self.DRAM_addra = 0
-        self.DRAM_wea = 0
-        self.DRAM_addrb = 0
-        self.DRAM_web = 0
-
-    def set_operator_inst(self, operator, operand_index, raddr: int, mux: int, mask=False):
-        is_masked_addr = mask and raddr < 4
-        if "MUL" in operator:
-            if operand_index == 0:
-                self.REGF_raddra = raddr
-                self.REGF_raddr_maska = 1 if is_masked_addr else 0
-                self.muxa = mux
-            else:  # operand_index == 1
-                self.REGF_raddrb = raddr
-                self.REGF_raddr_maskb = 1 if is_masked_addr else 0
-                self.muxb = mux
-            self.MM_val = 1
-        elif "ADD" in operator or "SUB" in operator:
-            if operand_index == 0:
-                self.REGF_raddrc = raddr
-                self.muxc = mux
-            else:  # operand_index == 1
-                self.REGF_raddrd = raddr
-                self.muxd = mux
-            self.MAS_val = 1
-            self.issub = 1 if "SUB" in operator else 0
-        else:
-            raise Exception("invalid operator: {}".format(operator))
-
-    def set_mem_write(self, operator, waddr: int, mask=False):
-        is_masked_addr = mask and waddr < 4
-        if "MUL" in operator:
-            self.REGF_waddra = waddr
-            self.REGF_waddr_maska = 1 if is_masked_addr else 0
-            self.REGF_wea = 1
-        elif "ADD" in operator or "SUB" in operator:
-            self.REGF_waddrb = waddr
-            self.REGF_waddr_maskb = 1 if is_masked_addr else 0
-            self.REGF_web = 1
-        else:
-            raise Exception("invalid operator: {}".format(operator))
-
-    def to_list(self):
-        return [
-            self.REGF_web,
-            self.REGF_waddr_maskb,
-            self.REGF_waddrb,
-            self.wmuxa,
-            self.REGF_wea,
-            self.REGF_waddr_maska,
-            self.REGF_waddra,
-            self.MAS_val,
-            self.MM_val,
-            self.issub,
-            self.muxd,
-            self.REGF_raddrd,
-            self.muxc,
-            self.REGF_raddrc,
-            self.muxb,
-            self.REGF_raddr_maskb,
-            self.REGF_raddrb,
-            self.muxa,
-            self.REGF_raddr_maska,
-            self.REGF_raddra]
-
-    def init_default_value(self, addr_list: list[int]):
-        [
-            self.DRAM_web,
-            self.DRAM_addrb,
-            self.DRAM_wea,
-            self.DRAM_addra,
-            self.endInst,
-            self.conInst,
-            self.condKey1,
-            self.condKey0,
-            self.REGF_web,
-            self.REGF_waddr_maskb,
-            self.REGF_waddrb,
-            self.wmuxa,
-            self.REGF_wea,
-            self.REGF_waddr_maska,
-            self.REGF_waddra,
-            self.MAS_val,
-            self.MM_val,
-            self.issub,
-            self.muxd,
-            self.REGF_raddrd,
-            self.muxc,
-            self.REGF_raddrc,
-            self.muxb,
-            self.REGF_raddr_maskb,
-            self.REGF_raddrb,
-            self.muxa,
-            self.REGF_raddr_maska,
-            self.REGF_raddra
-        ] = addr_list
-
-
-class ALURAMAddr:
-    def __init__(self, max_addr: int, cal_mux: int) -> None:
-        self.addr_bits = max_addr.bit_length()
-        self.cal_mux_bits = cal_mux.bit_length()
-        mm_inst_bits = self.addr_bits + self.cal_mux_bits + 1
-        add_inst_bits = self.addr_bits + self.cal_mux_bits
-        self.alu_inst_bits = mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits * 2 + 8
-        self.outbram_addr_bits = 4
-
-        self.bit_index_list = {
-            "REGF_raddra": 0,
-            "REGF_raddr_maska": self.addr_bits,
-            "muxa": self.addr_bits + 1,
-            "REGF_raddrb": mm_inst_bits,
-            "REGF_raddr_maskb": mm_inst_bits + self.addr_bits,
-            "muxb": mm_inst_bits + self.addr_bits + 1,
-            "REGF_raddrc": mm_inst_bits * 2,
-            "muxc": mm_inst_bits * 2 + self.addr_bits,
-            "REGF_raddrd": mm_inst_bits * 2 + add_inst_bits,
-            "muxd": mm_inst_bits * 2 + add_inst_bits + self.addr_bits,
-            "issub": mm_inst_bits * 2 + add_inst_bits * 2,
-            "MM_val": mm_inst_bits * 2 + add_inst_bits * 2 + 1,
-            "MAS_val": mm_inst_bits * 2 + add_inst_bits * 2 + 2,
-            "REGF_waddra": mm_inst_bits * 2 + add_inst_bits * 2 + 3,
-            "REGF_waddr_maska": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 3,
-            "REGF_wea": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 4,
-            "wmuxa": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 5,
-            "REGF_waddrb": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 6,
-            "REGF_waddr_maskb": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 7,
-            "REGF_web": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 8,
-            "condKey0": self.alu_inst_bits,
-            "condKey1": self.alu_inst_bits + 1,
-            "conInst": self.alu_inst_bits + 2,
-            "endInst": self.alu_inst_bits + 3,
-            "DRAM_addra": self.alu_inst_bits + 4,
-            "DRAM_wea": self.alu_inst_bits + self.outbram_addr_bits + 4,
-            "DRAM_addrb": self.alu_inst_bits + self.outbram_addr_bits + 5,
-            "DRAM_web": self.alu_inst_bits + self.outbram_addr_bits * 2 + 5,
-        }
-
-    def convertInst(self, instList: list[ALUInstruction]):
-        hexInstList = []
-        for inst in instList:
-            tmp_hexinst = 0
-            for key, value in inst.__dict__.items():
-                tmp_hexinst += value << self.bit_index_list[key]
-            hexInstList.append(tmp_hexinst)
-        return hexInstList
-
 
 class solutionData:
     def __init__(self, opr1, opr2, operator, start, end) -> None:
@@ -254,34 +75,12 @@ class schedulingData:
         self.inst_list: list[ALUInstruction] = []
         self.mem_addr_list = []
 
-        self.default_mem_is_second = {"input": False, "output": False}
-        for i in range(MULnum):
-            self.default_mem_is_second["mm{num}".format(num=i)] = False
-        for i in range(ADDnum):
-            self.default_mem_is_second["add{num}".format(num=i)] = False
-
     # c = a + bなら["c", "ADD", "a", "b"]
     def find_formula(self, valuable):
         for formula in self.formulas:
             if formula[0] == valuable:
                 return formula
         raise Exception("invalid valuable: {}".format(valuable))
-
-    # 演算器がmm0/add0~3の内どれなのか出力
-    def check_operator(self, operator, start_time):
-        operator_name = operator[:-1]
-        operator_num = operator[-1]
-        if operator_name == "MUL":
-            return "mm{num}".format(num=operator_num)
-        elif operator_name == "ADD":
-            return "add{num}".format(num=operator_num)
-        elif operator_name == "ADD":
-            return "add{num}".format(num=operator_num)
-        elif operator == "INV":
-            self.inv_start_time = start_time
-            return "inv"
-        else:
-            raise Exception("invalid operator: " + operator)
 
     # 最初に実行
     # c = a + b, ["c", "ADD0", start_time, end_time] の時
@@ -299,7 +98,6 @@ class schedulingData:
             self.seq_finish_time = max(self.seq_finish_time, end_time)
             if "_mem" not in value_name:
                 formula = self.find_formula(value_name)
-                # operator = self.check_operator(operator_name, start_time)
                 self.solution_data_list[value_name] = solutionData(
                     opr1=formula[2], opr2=formula[3], operator=operator_name, start=start_time, end=end_time)
                 # print("{}, {}".format(value_name, start_time))
@@ -351,7 +149,7 @@ class schedulingData:
                 self.mem_addr_list.append(end_time)
             # print(self.mem_addr_list)
 
-    def set_operator_inst(self, data, value_name):
+    def set_operator_inst(self, data: solutionData, value_name):
         for i in range(2):
             operand_name = data.opr1 if i == 0 else data.opr2
             time = data.start
@@ -432,10 +230,28 @@ def file_replace(old_filename, new_filename, old_str, new_str):
 
 
 if __name__ == "__main__":
+    psr = argparse.ArgumentParser(
+        usage="write_sequence.py -ms <stages_of_multiplier> -as <stages_of_adder>",
+        description="Execute scheduling with a 7-stage pipelined Fp montgomery multiplier, four Fp adders/subtractors, an Fp inversion operator",
+    )
+    psr.add_argument(
+        "-ms",
+        "--mulStage",
+        required=True,
+        help="number of stages of Fp montgomery multipliers",
+    )
+    psr.add_argument(
+        "-as",
+        "--addStage",
+        default=1,
+        help="number of stages of Fp adder/subtractor",
+    )
+    args = psr.parse_args()
+
     mulNum = 1
-    mulStage = 4
+    mulStage = int(args.mulStage)
     addNum = 1
-    addStage = 1
+    addStage = int(args.addStage)
 
     input = []
     output = []
@@ -451,9 +267,8 @@ if __name__ == "__main__":
     #             continue
     target_dir = "./RTL_result/stage{}".format(mulStage)
     os.makedirs(target_dir, exist_ok=True)
-    output_file_path = "{}/inst.txt".format(target_dir)
+    output_file_path = "{}/RAMINIT_Inst.mem".format(target_dir)
     result_file_path = "./scheduling/ladderMul_mul{}_{}_add{}_{}/result.txt".format(mulNum, mulStage, addNum, addStage)
-    result_file_path = "./scheduling/ladderMul_mul1_4_add1_1/result.txt"
     mem_table = {}
     # read scheduling result file
     exec(open(result_file_path, 'r', encoding="utf-8").read())
@@ -471,12 +286,14 @@ if __name__ == "__main__":
     try:
         ladder_sche_data.make_sequence()
         # ladder_sche_data.write_csv()
-
     except Exception:
         etype, value, tb = sys.exc_info()
         estr_list = traceback.format_exception(etype, value, tb)
         for estr in estr_list:
             print(estr, end="")
+    ladder_sche_data.inst_list[-5].conInst = 1
+    ladder_sche_data.inst_list[-3].condKey1 = 1
+    ladder_sche_data.inst_list[-3].condKey0 = 1
 
     result_file_path = "./scheduling/yrecover_mul{}_{}_add{}_{}/result.txt".format(mulNum, mulStage, addNum, addStage)
     mem_table = {}
@@ -502,16 +319,30 @@ if __name__ == "__main__":
         for estr in estr_list:
             print(estr, end="")
 
-    max_addr = max(len(ladder_sche_data.mem_addr_list), len(yrecover_sche_result.mem_addr_list)) + yrecover_sche_result.index_to_add
-    alu_ram_index = ALURAMAddr(max_addr, 3)
+    max_addr = max(len(ladder_sche_data.mem_addr_list), len(yrecover_sche_result.mem_addr_list)) - 1 + yrecover_sche_result.index_to_add
+    alu_ram_index = ALURAMIndex(max_addr, 3)
     ladder_inst_list = alu_ram_index.convertInst(ladder_sche_data.inst_list)
     yrecover_inst_list = alu_ram_index.convertInst(yrecover_sche_result.inst_list)
+    
+    init_inst_list = set_init_inst(alu_ram_index)
+    Fpinv_preprocess_inst_list = set_Fpinv_preprocess_inst(alu_ram_index, mulStage)
+    Fpinv_inst_list = set_Fpinv_inst(alu_ram_index, mulStage)
+    yrecover2_inst_list = set_yrecover2_inst(alu_ram_index, mulStage)
 
     with open(output_file_path, "w") as f:
+        for init_inst in init_inst_list:
+            f.write(format(init_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
         for ladder_inst in ladder_inst_list:
-            f.write(hex(ladder_inst) + "\n")
+            f.write(format(ladder_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
         for yrecover_inst in yrecover_inst_list:
-            f.write(hex(yrecover_inst) + "\n")
+            f.write(format(yrecover_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
+        for Fpinv_preprocess_inst in Fpinv_preprocess_inst_list:
+            f.write(format(Fpinv_preprocess_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
+        for Fpinv_inst in Fpinv_inst_list:
+            f.write(format(Fpinv_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
+        for yrecover2_inst in yrecover2_inst_list:
+            f.write(format(yrecover2_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")
 
-    write_header(target_dir, max_addr, 3)
+    write_header(target_dir, alu_ram_index)
     write_raminit_aluram(target_dir, max_addr)
+    write_raminit_cmdaddr(target_dir, mulStage, len(ladder_inst_list), len(yrecover_inst_list))
