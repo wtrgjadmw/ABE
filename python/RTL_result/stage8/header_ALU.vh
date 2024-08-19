@@ -1,5 +1,5 @@
 `define ALU_INST_BITS 48
-`define MEM_SIZE 17
+`define ALU_MEM_SIZE 17
 `define ADDR_BITS 5
 `define CAL_MUX_BIT 2
 

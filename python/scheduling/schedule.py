@@ -168,6 +168,7 @@ def make_pyschedule(
     MULnum,
     MULstage,
     ADDnum,
+    ADDstage,
     read_num,
     input_num,
 ):
@@ -193,9 +194,12 @@ def make_pyschedule(
     f_write.write("\tMUL_in = S.Resources('MUL_in', num={0})\n".format(MULnum))
     f_write.write("\tINV = S.Resource('INV')\n")
     f_write.write(
-        "\tMAS = S.Resources('MAS', num={0}, periods=range(1, horizon))\n".format(
-            ADDnum
+        "\tMAS = S.Resources('MAS', num={0}, size={1}, periods=range(1, horizon))\n".format(
+            ADDnum, ADDstage
         )
+    )
+    f_write.write(
+        "\tMAS_in = S.Resources('MAS_in', num={0})\n".format(ADDnum)
     )
 
     # # 1write-2read RAM
@@ -210,7 +214,7 @@ def make_pyschedule(
     f_write.write("\tINPUT_mem_w = S.Resource('INPUT_mem_w', size=2)\n")
     f_write.write("\tINPUT_mem_r = S.Resource('INPUT_mem_r', size={})\n".format(read_num))
 
-    multi_resources = ["MUL", "MUL_in", "MAS"]
+    multi_resources = ["MUL", "MUL_in", "MAS", "MAS_in"]
     # multi_resources = ["MUL", "MUL_in", "ADD", "MUL_mem", "ADD_mem"]
     single_resources = ["INV", "INPUT_mem_w", "INPUT_mem_r"]
 
@@ -247,9 +251,14 @@ def make_pyschedule(
             f_write.write("\tS += {0}>={0}_in\n\n".format(line[0]))
         elif line[1] == "ADD" or line[1] == "SUB":
             f_write.write(
-                "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
+                "\t{0}_in = S.Task('{0}_in', length=1, delay_cost=1)\n".format(line[0])
+            )
+            f_write.write("\t" + line[0] + "_in += alt(MAS_in)\n")
+            f_write.write(
+                "\t{0} = S.Task('{0}', length={1}, delay_cost=1)\n".format(line[0], ADDstage)
             )
             f_write.write("\t" + line[0] + " += alt(MAS)\n\n")
+            f_write.write("\tS += {0}>={0}_in\n\n".format(line[0]))
         elif line[1] == "INV":
             f_write.write(
                 "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
@@ -326,12 +335,12 @@ if __name__ == "__main__":
         help="number of stages of Fp montgomery multipliers",
     )
     psr.add_argument(
-        "-a", "--addNum", default=4, help="number of Fp adders/subtractors (default is 4)"
+        "-a", "--addNum", default=1, help="number of Fp adders/subtractors (default is 4)"
     )
     psr.add_argument(
         "-as",
         "--addStage",
-        default=1,
+        required=True,
         help="number of stages of Fp adder/subtractor",
     )
     psr.add_argument(
@@ -397,6 +406,7 @@ if __name__ == "__main__":
             mul_num,
             mul_stage,
             add_num,
+            add_stage,
             read_num,
             input_num)
         print(i)

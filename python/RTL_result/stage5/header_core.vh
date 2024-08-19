@@ -1,0 +1,10 @@
+`define INST_BITS 62
+`define INST_RAM_addr_BITS 7
+`define CMDADDR_repeat_BITS 9
+`define OUTBRAM_ADDR_BITS 4
+
+`define INDEX_CONDKEY 48
+`define INDEX_CONINST 50
+`define INDEX_ENDINST 51
+`define INDEX_DRAMA 52
+`define INDEX_DRAMB 57
