@@ -4,7 +4,7 @@ import sys
 import argparse
 import traceback
 import csv
-from python.ECSM.inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
+from python.gen_inst.inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
 
 
 def value2num(value):

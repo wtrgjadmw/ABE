@@ -15,6 +15,19 @@ def value2num(value):
     return num
 
 
+# cが10clk目で出力 -> アドレス2に保存 -> 15clk目でオペランドとして最後に呼び出される場合，
+# memoryData = {start: RAMに入るのは11clk目, end: 15, addr: x}
+class memoryData:
+    def __init__(self, start, end, is_output=False) -> None:
+        self.start = start
+        self.end = end
+        self.addr = -1
+        self.is_output = is_output
+
+    def set_addr(self, addr):
+        self.addr = addr
+
+
 class schedulingData:
     def __init__(
             self,
@@ -46,6 +59,7 @@ class schedulingData:
         self.mem_ctrl_seq = [[]]
         self.operator_init_seq = [[]]
 
+        self.inst_list: list[ALUInstruction] = []
         self.mem_addr_list = {}
         for i in range(MULnum):
             self.mem_addr_list["mm{num}".format(num=i)] = []
