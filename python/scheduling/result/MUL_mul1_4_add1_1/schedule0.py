@@ -1,0 +1,473 @@
+from pyschedule import Scenario, solvers, plotters, alt
+
+
+def solve():
+	horizon = 110
+	S = Scenario("schedule0", horizon=horizon)
+
+	# resource
+	MUL = S.Resources('MUL', num=1, size=4)
+	MUL_in = S.Resources('MUL_in', num=1)
+	INV = S.Resource('INV')
+	MAS = S.Resources('MAS', num=1, size=1, periods=range(1, horizon))
+	MAS_in = S.Resources('MAS_in', num=1)
+	INPUT_mem_w = S.Resource('INPUT_mem_w', size=2)
+	INPUT_mem_r = S.Resource('INPUT_mem_r', size=4)
+
+	# result of previous scheduling
+
+	# new tasks
+	c_t0_t0_t0_in = S.Task('c_t0_t0_t0_in', length=1, delay_cost=1)
+	c_t0_t0_t0_in += alt(MUL_in)
+	c_t0_t0_t0 = S.Task('c_t0_t0_t0', length=4, delay_cost=1)
+	c_t0_t0_t0 += alt(MUL)
+	S += c_t0_t0_t0>=c_t0_t0_t0_in
+
+	c_t0_t0_t0_mem0 = S.Task('c_t0_t0_t0_mem0', length=1, delay_cost=1)
+	c_t0_t0_t0_mem0 += INPUT_mem_r
+	S += c_t0_t0_t0_mem0-1 <= c_t0_t0_t0
+
+	c_t0_t0_t0_mem1 = S.Task('c_t0_t0_t0_mem1', length=1, delay_cost=1)
+	c_t0_t0_t0_mem1 += INPUT_mem_r
+	S += c_t0_t0_t0_mem1-1 <= c_t0_t0_t0
+
+	c_t0_t0_t1_in = S.Task('c_t0_t0_t1_in', length=1, delay_cost=1)
+	c_t0_t0_t1_in += alt(MUL_in)
+	c_t0_t0_t1 = S.Task('c_t0_t0_t1', length=4, delay_cost=1)
+	c_t0_t0_t1 += alt(MUL)
+	S += c_t0_t0_t1>=c_t0_t0_t1_in
+
+	c_t0_t0_t1_mem0 = S.Task('c_t0_t0_t1_mem0', length=1, delay_cost=1)
+	c_t0_t0_t1_mem0 += INPUT_mem_r
+	S += c_t0_t0_t1_mem0-1 <= c_t0_t0_t1
+
+	c_t0_t0_t1_mem1 = S.Task('c_t0_t0_t1_mem1', length=1, delay_cost=1)
+	c_t0_t0_t1_mem1 += INPUT_mem_r
+	S += c_t0_t0_t1_mem1-1 <= c_t0_t0_t1
+
+	c_t0_t0_t2_in = S.Task('c_t0_t0_t2_in', length=1, delay_cost=1)
+	c_t0_t0_t2_in += alt(MAS_in)
+	c_t0_t0_t2 = S.Task('c_t0_t0_t2', length=1, delay_cost=1)
+	c_t0_t0_t2 += alt(MAS)
+
+	S += c_t0_t0_t2>=c_t0_t0_t2_in
+
+	c_t0_t0_t2_mem0 = S.Task('c_t0_t0_t2_mem0', length=1, delay_cost=1)
+	c_t0_t0_t2_mem0 += INPUT_mem_r
+	S += c_t0_t0_t2_mem0-1 <= c_t0_t0_t2
+
+	c_t0_t0_t2_mem1 = S.Task('c_t0_t0_t2_mem1', length=1, delay_cost=1)
+	c_t0_t0_t2_mem1 += INPUT_mem_r
+	S += c_t0_t0_t2_mem1-1 <= c_t0_t0_t2
+
+	c_t0_t0_t3_in = S.Task('c_t0_t0_t3_in', length=1, delay_cost=1)
+	c_t0_t0_t3_in += alt(MAS_in)
+	c_t0_t0_t3 = S.Task('c_t0_t0_t3', length=1, delay_cost=1)
+	c_t0_t0_t3 += alt(MAS)
+
+	S += c_t0_t0_t3>=c_t0_t0_t3_in
+
+	c_t0_t0_t3_mem0 = S.Task('c_t0_t0_t3_mem0', length=1, delay_cost=1)
+	c_t0_t0_t3_mem0 += INPUT_mem_r
+	S += c_t0_t0_t3_mem0-1 <= c_t0_t0_t3
+
+	c_t0_t0_t3_mem1 = S.Task('c_t0_t0_t3_mem1', length=1, delay_cost=1)
+	c_t0_t0_t3_mem1 += INPUT_mem_r
+	S += c_t0_t0_t3_mem1-1 <= c_t0_t0_t3
+
+	c_t0_t1_t0_in = S.Task('c_t0_t1_t0_in', length=1, delay_cost=1)
+	c_t0_t1_t0_in += alt(MUL_in)
+	c_t0_t1_t0 = S.Task('c_t0_t1_t0', length=4, delay_cost=1)
+	c_t0_t1_t0 += alt(MUL)
+	S += c_t0_t1_t0>=c_t0_t1_t0_in
+
+	c_t0_t1_t0_mem0 = S.Task('c_t0_t1_t0_mem0', length=1, delay_cost=1)
+	c_t0_t1_t0_mem0 += INPUT_mem_r
+	S += c_t0_t1_t0_mem0-1 <= c_t0_t1_t0
+
+	c_t0_t1_t0_mem1 = S.Task('c_t0_t1_t0_mem1', length=1, delay_cost=1)
+	c_t0_t1_t0_mem1 += INPUT_mem_r
+	S += c_t0_t1_t0_mem1-1 <= c_t0_t1_t0
+
+	c_t0_t1_t1_in = S.Task('c_t0_t1_t1_in', length=1, delay_cost=1)
+	c_t0_t1_t1_in += alt(MUL_in)
+	c_t0_t1_t1 = S.Task('c_t0_t1_t1', length=4, delay_cost=1)
+	c_t0_t1_t1 += alt(MUL)
+	S += c_t0_t1_t1>=c_t0_t1_t1_in
+
+	c_t0_t1_t1_mem0 = S.Task('c_t0_t1_t1_mem0', length=1, delay_cost=1)
+	c_t0_t1_t1_mem0 += INPUT_mem_r
+	S += c_t0_t1_t1_mem0-1 <= c_t0_t1_t1
+
+	c_t0_t1_t1_mem1 = S.Task('c_t0_t1_t1_mem1', length=1, delay_cost=1)
+	c_t0_t1_t1_mem1 += INPUT_mem_r
+	S += c_t0_t1_t1_mem1-1 <= c_t0_t1_t1
+
+	c_t0_t1_t2_in = S.Task('c_t0_t1_t2_in', length=1, delay_cost=1)
+	c_t0_t1_t2_in += alt(MAS_in)
+	c_t0_t1_t2 = S.Task('c_t0_t1_t2', length=1, delay_cost=1)
+	c_t0_t1_t2 += alt(MAS)
+
+	S += c_t0_t1_t2>=c_t0_t1_t2_in
+
+	c_t0_t1_t2_mem0 = S.Task('c_t0_t1_t2_mem0', length=1, delay_cost=1)
+	c_t0_t1_t2_mem0 += INPUT_mem_r
+	S += c_t0_t1_t2_mem0-1 <= c_t0_t1_t2
+
+	c_t0_t1_t2_mem1 = S.Task('c_t0_t1_t2_mem1', length=1, delay_cost=1)
+	c_t0_t1_t2_mem1 += INPUT_mem_r
+	S += c_t0_t1_t2_mem1-1 <= c_t0_t1_t2
+
+	c_t0_t1_t3_in = S.Task('c_t0_t1_t3_in', length=1, delay_cost=1)
+	c_t0_t1_t3_in += alt(MAS_in)
+	c_t0_t1_t3 = S.Task('c_t0_t1_t3', length=1, delay_cost=1)
+	c_t0_t1_t3 += alt(MAS)
+
+	S += c_t0_t1_t3>=c_t0_t1_t3_in
+
+	c_t0_t1_t3_mem0 = S.Task('c_t0_t1_t3_mem0', length=1, delay_cost=1)
+	c_t0_t1_t3_mem0 += INPUT_mem_r
+	S += c_t0_t1_t3_mem0-1 <= c_t0_t1_t3
+
+	c_t0_t1_t3_mem1 = S.Task('c_t0_t1_t3_mem1', length=1, delay_cost=1)
+	c_t0_t1_t3_mem1 += INPUT_mem_r
+	S += c_t0_t1_t3_mem1-1 <= c_t0_t1_t3
+
+	c_t0_t20_in = S.Task('c_t0_t20_in', length=1, delay_cost=1)
+	c_t0_t20_in += alt(MAS_in)
+	c_t0_t20 = S.Task('c_t0_t20', length=1, delay_cost=1)
+	c_t0_t20 += alt(MAS)
+
+	S += c_t0_t20>=c_t0_t20_in
+
+	c_t0_t20_mem0 = S.Task('c_t0_t20_mem0', length=1, delay_cost=1)
+	c_t0_t20_mem0 += INPUT_mem_r
+	S += c_t0_t20_mem0-1 <= c_t0_t20
+
+	c_t0_t20_mem1 = S.Task('c_t0_t20_mem1', length=1, delay_cost=1)
+	c_t0_t20_mem1 += INPUT_mem_r
+	S += c_t0_t20_mem1-1 <= c_t0_t20
+
+	c_t0_t21_in = S.Task('c_t0_t21_in', length=1, delay_cost=1)
+	c_t0_t21_in += alt(MAS_in)
+	c_t0_t21 = S.Task('c_t0_t21', length=1, delay_cost=1)
+	c_t0_t21 += alt(MAS)
+
+	S += c_t0_t21>=c_t0_t21_in
+
+	c_t0_t21_mem0 = S.Task('c_t0_t21_mem0', length=1, delay_cost=1)
+	c_t0_t21_mem0 += INPUT_mem_r
+	S += c_t0_t21_mem0-1 <= c_t0_t21
+
+	c_t0_t21_mem1 = S.Task('c_t0_t21_mem1', length=1, delay_cost=1)
+	c_t0_t21_mem1 += INPUT_mem_r
+	S += c_t0_t21_mem1-1 <= c_t0_t21
+
+	c_t0_t30_in = S.Task('c_t0_t30_in', length=1, delay_cost=1)
+	c_t0_t30_in += alt(MAS_in)
+	c_t0_t30 = S.Task('c_t0_t30', length=1, delay_cost=1)
+	c_t0_t30 += alt(MAS)
+
+	S += c_t0_t30>=c_t0_t30_in
+
+	c_t0_t30_mem0 = S.Task('c_t0_t30_mem0', length=1, delay_cost=1)
+	c_t0_t30_mem0 += INPUT_mem_r
+	S += c_t0_t30_mem0-1 <= c_t0_t30
+
+	c_t0_t30_mem1 = S.Task('c_t0_t30_mem1', length=1, delay_cost=1)
+	c_t0_t30_mem1 += INPUT_mem_r
+	S += c_t0_t30_mem1-1 <= c_t0_t30
+
+	c_t0_t31_in = S.Task('c_t0_t31_in', length=1, delay_cost=1)
+	c_t0_t31_in += alt(MAS_in)
+	c_t0_t31 = S.Task('c_t0_t31', length=1, delay_cost=1)
+	c_t0_t31 += alt(MAS)
+
+	S += c_t0_t31>=c_t0_t31_in
+
+	c_t0_t31_mem0 = S.Task('c_t0_t31_mem0', length=1, delay_cost=1)
+	c_t0_t31_mem0 += INPUT_mem_r
+	S += c_t0_t31_mem0-1 <= c_t0_t31
+
+	c_t0_t31_mem1 = S.Task('c_t0_t31_mem1', length=1, delay_cost=1)
+	c_t0_t31_mem1 += INPUT_mem_r
+	S += c_t0_t31_mem1-1 <= c_t0_t31
+
+	c_t1_t0_t0_in = S.Task('c_t1_t0_t0_in', length=1, delay_cost=1)
+	c_t1_t0_t0_in += alt(MUL_in)
+	c_t1_t0_t0 = S.Task('c_t1_t0_t0', length=4, delay_cost=1)
+	c_t1_t0_t0 += alt(MUL)
+	S += c_t1_t0_t0>=c_t1_t0_t0_in
+
+	c_t1_t0_t0_mem0 = S.Task('c_t1_t0_t0_mem0', length=1, delay_cost=1)
+	c_t1_t0_t0_mem0 += INPUT_mem_r
+	S += c_t1_t0_t0_mem0-1 <= c_t1_t0_t0
+
+	c_t1_t0_t0_mem1 = S.Task('c_t1_t0_t0_mem1', length=1, delay_cost=1)
+	c_t1_t0_t0_mem1 += INPUT_mem_r
+	S += c_t1_t0_t0_mem1-1 <= c_t1_t0_t0
+
+	c_t1_t0_t1_in = S.Task('c_t1_t0_t1_in', length=1, delay_cost=1)
+	c_t1_t0_t1_in += alt(MUL_in)
+	c_t1_t0_t1 = S.Task('c_t1_t0_t1', length=4, delay_cost=1)
+	c_t1_t0_t1 += alt(MUL)
+	S += c_t1_t0_t1>=c_t1_t0_t1_in
+
+	c_t1_t0_t1_mem0 = S.Task('c_t1_t0_t1_mem0', length=1, delay_cost=1)
+	c_t1_t0_t1_mem0 += INPUT_mem_r
+	S += c_t1_t0_t1_mem0-1 <= c_t1_t0_t1
+
+	c_t1_t0_t1_mem1 = S.Task('c_t1_t0_t1_mem1', length=1, delay_cost=1)
+	c_t1_t0_t1_mem1 += INPUT_mem_r
+	S += c_t1_t0_t1_mem1-1 <= c_t1_t0_t1
+
+	c_t1_t0_t2_in = S.Task('c_t1_t0_t2_in', length=1, delay_cost=1)
+	c_t1_t0_t2_in += alt(MAS_in)
+	c_t1_t0_t2 = S.Task('c_t1_t0_t2', length=1, delay_cost=1)
+	c_t1_t0_t2 += alt(MAS)
+
+	S += c_t1_t0_t2>=c_t1_t0_t2_in
+
+	c_t1_t0_t2_mem0 = S.Task('c_t1_t0_t2_mem0', length=1, delay_cost=1)
+	c_t1_t0_t2_mem0 += INPUT_mem_r
+	S += c_t1_t0_t2_mem0-1 <= c_t1_t0_t2
+
+	c_t1_t0_t2_mem1 = S.Task('c_t1_t0_t2_mem1', length=1, delay_cost=1)
+	c_t1_t0_t2_mem1 += INPUT_mem_r
+	S += c_t1_t0_t2_mem1-1 <= c_t1_t0_t2
+
+	c_t1_t0_t3_in = S.Task('c_t1_t0_t3_in', length=1, delay_cost=1)
+	c_t1_t0_t3_in += alt(MAS_in)
+	c_t1_t0_t3 = S.Task('c_t1_t0_t3', length=1, delay_cost=1)
+	c_t1_t0_t3 += alt(MAS)
+
+	S += c_t1_t0_t3>=c_t1_t0_t3_in
+
+	c_t1_t0_t3_mem0 = S.Task('c_t1_t0_t3_mem0', length=1, delay_cost=1)
+	c_t1_t0_t3_mem0 += INPUT_mem_r
+	S += c_t1_t0_t3_mem0-1 <= c_t1_t0_t3
+
+	c_t1_t0_t3_mem1 = S.Task('c_t1_t0_t3_mem1', length=1, delay_cost=1)
+	c_t1_t0_t3_mem1 += INPUT_mem_r
+	S += c_t1_t0_t3_mem1-1 <= c_t1_t0_t3
+
+	c_t1_t1_t0_in = S.Task('c_t1_t1_t0_in', length=1, delay_cost=1)
+	c_t1_t1_t0_in += alt(MUL_in)
+	c_t1_t1_t0 = S.Task('c_t1_t1_t0', length=4, delay_cost=1)
+	c_t1_t1_t0 += alt(MUL)
+	S += c_t1_t1_t0>=c_t1_t1_t0_in
+
+	c_t1_t1_t0_mem0 = S.Task('c_t1_t1_t0_mem0', length=1, delay_cost=1)
+	c_t1_t1_t0_mem0 += INPUT_mem_r
+	S += c_t1_t1_t0_mem0-1 <= c_t1_t1_t0
+
+	c_t1_t1_t0_mem1 = S.Task('c_t1_t1_t0_mem1', length=1, delay_cost=1)
+	c_t1_t1_t0_mem1 += INPUT_mem_r
+	S += c_t1_t1_t0_mem1-1 <= c_t1_t1_t0
+
+	c_t1_t1_t1_in = S.Task('c_t1_t1_t1_in', length=1, delay_cost=1)
+	c_t1_t1_t1_in += alt(MUL_in)
+	c_t1_t1_t1 = S.Task('c_t1_t1_t1', length=4, delay_cost=1)
+	c_t1_t1_t1 += alt(MUL)
+	S += c_t1_t1_t1>=c_t1_t1_t1_in
+
+	c_t1_t1_t1_mem0 = S.Task('c_t1_t1_t1_mem0', length=1, delay_cost=1)
+	c_t1_t1_t1_mem0 += INPUT_mem_r
+	S += c_t1_t1_t1_mem0-1 <= c_t1_t1_t1
+
+	c_t1_t1_t1_mem1 = S.Task('c_t1_t1_t1_mem1', length=1, delay_cost=1)
+	c_t1_t1_t1_mem1 += INPUT_mem_r
+	S += c_t1_t1_t1_mem1-1 <= c_t1_t1_t1
+
+	c_t1_t1_t2_in = S.Task('c_t1_t1_t2_in', length=1, delay_cost=1)
+	c_t1_t1_t2_in += alt(MAS_in)
+	c_t1_t1_t2 = S.Task('c_t1_t1_t2', length=1, delay_cost=1)
+	c_t1_t1_t2 += alt(MAS)
+
+	S += c_t1_t1_t2>=c_t1_t1_t2_in
+
+	c_t1_t1_t2_mem0 = S.Task('c_t1_t1_t2_mem0', length=1, delay_cost=1)
+	c_t1_t1_t2_mem0 += INPUT_mem_r
+	S += c_t1_t1_t2_mem0-1 <= c_t1_t1_t2
+
+	c_t1_t1_t2_mem1 = S.Task('c_t1_t1_t2_mem1', length=1, delay_cost=1)
+	c_t1_t1_t2_mem1 += INPUT_mem_r
+	S += c_t1_t1_t2_mem1-1 <= c_t1_t1_t2
+
+	c_t1_t1_t3_in = S.Task('c_t1_t1_t3_in', length=1, delay_cost=1)
+	c_t1_t1_t3_in += alt(MAS_in)
+	c_t1_t1_t3 = S.Task('c_t1_t1_t3', length=1, delay_cost=1)
+	c_t1_t1_t3 += alt(MAS)
+
+	S += c_t1_t1_t3>=c_t1_t1_t3_in
+
+	c_t1_t1_t3_mem0 = S.Task('c_t1_t1_t3_mem0', length=1, delay_cost=1)
+	c_t1_t1_t3_mem0 += INPUT_mem_r
+	S += c_t1_t1_t3_mem0-1 <= c_t1_t1_t3
+
+	c_t1_t1_t3_mem1 = S.Task('c_t1_t1_t3_mem1', length=1, delay_cost=1)
+	c_t1_t1_t3_mem1 += INPUT_mem_r
+	S += c_t1_t1_t3_mem1-1 <= c_t1_t1_t3
+
+	c_t1_t20_in = S.Task('c_t1_t20_in', length=1, delay_cost=1)
+	c_t1_t20_in += alt(MAS_in)
+	c_t1_t20 = S.Task('c_t1_t20', length=1, delay_cost=1)
+	c_t1_t20 += alt(MAS)
+
+	S += c_t1_t20>=c_t1_t20_in
+
+	c_t1_t20_mem0 = S.Task('c_t1_t20_mem0', length=1, delay_cost=1)
+	c_t1_t20_mem0 += INPUT_mem_r
+	S += c_t1_t20_mem0-1 <= c_t1_t20
+
+	c_t1_t20_mem1 = S.Task('c_t1_t20_mem1', length=1, delay_cost=1)
+	c_t1_t20_mem1 += INPUT_mem_r
+	S += c_t1_t20_mem1-1 <= c_t1_t20
+
+	c_t1_t21_in = S.Task('c_t1_t21_in', length=1, delay_cost=1)
+	c_t1_t21_in += alt(MAS_in)
+	c_t1_t21 = S.Task('c_t1_t21', length=1, delay_cost=1)
+	c_t1_t21 += alt(MAS)
+
+	S += c_t1_t21>=c_t1_t21_in
+
+	c_t1_t21_mem0 = S.Task('c_t1_t21_mem0', length=1, delay_cost=1)
+	c_t1_t21_mem0 += INPUT_mem_r
+	S += c_t1_t21_mem0-1 <= c_t1_t21
+
+	c_t1_t21_mem1 = S.Task('c_t1_t21_mem1', length=1, delay_cost=1)
+	c_t1_t21_mem1 += INPUT_mem_r
+	S += c_t1_t21_mem1-1 <= c_t1_t21
+
+	c_t1_t30_in = S.Task('c_t1_t30_in', length=1, delay_cost=1)
+	c_t1_t30_in += alt(MAS_in)
+	c_t1_t30 = S.Task('c_t1_t30', length=1, delay_cost=1)
+	c_t1_t30 += alt(MAS)
+
+	S += c_t1_t30>=c_t1_t30_in
+
+	c_t1_t30_mem0 = S.Task('c_t1_t30_mem0', length=1, delay_cost=1)
+	c_t1_t30_mem0 += INPUT_mem_r
+	S += c_t1_t30_mem0-1 <= c_t1_t30
+
+	c_t1_t30_mem1 = S.Task('c_t1_t30_mem1', length=1, delay_cost=1)
+	c_t1_t30_mem1 += INPUT_mem_r
+	S += c_t1_t30_mem1-1 <= c_t1_t30
+
+	c_t1_t31_in = S.Task('c_t1_t31_in', length=1, delay_cost=1)
+	c_t1_t31_in += alt(MAS_in)
+	c_t1_t31 = S.Task('c_t1_t31', length=1, delay_cost=1)
+	c_t1_t31 += alt(MAS)
+
+	S += c_t1_t31>=c_t1_t31_in
+
+	c_t1_t31_mem0 = S.Task('c_t1_t31_mem0', length=1, delay_cost=1)
+	c_t1_t31_mem0 += INPUT_mem_r
+	S += c_t1_t31_mem0-1 <= c_t1_t31
+
+	c_t1_t31_mem1 = S.Task('c_t1_t31_mem1', length=1, delay_cost=1)
+	c_t1_t31_mem1 += INPUT_mem_r
+	S += c_t1_t31_mem1-1 <= c_t1_t31
+
+	c_t2_t0_t0_in = S.Task('c_t2_t0_t0_in', length=1, delay_cost=1)
+	c_t2_t0_t0_in += alt(MUL_in)
+	c_t2_t0_t0 = S.Task('c_t2_t0_t0', length=4, delay_cost=1)
+	c_t2_t0_t0 += alt(MUL)
+	S += c_t2_t0_t0>=c_t2_t0_t0_in
+
+	c_t2_t0_t0_mem0 = S.Task('c_t2_t0_t0_mem0', length=1, delay_cost=1)
+	c_t2_t0_t0_mem0 += INPUT_mem_r
+	S += c_t2_t0_t0_mem0-1 <= c_t2_t0_t0
+
+	c_t2_t0_t0_mem1 = S.Task('c_t2_t0_t0_mem1', length=1, delay_cost=1)
+	c_t2_t0_t0_mem1 += INPUT_mem_r
+	S += c_t2_t0_t0_mem1-1 <= c_t2_t0_t0
+
+	c_t2_t0_t1_in = S.Task('c_t2_t0_t1_in', length=1, delay_cost=1)
+	c_t2_t0_t1_in += alt(MUL_in)
+	c_t2_t0_t1 = S.Task('c_t2_t0_t1', length=4, delay_cost=1)
+	c_t2_t0_t1 += alt(MUL)
+	S += c_t2_t0_t1>=c_t2_t0_t1_in
+
+	c_t2_t0_t1_mem0 = S.Task('c_t2_t0_t1_mem0', length=1, delay_cost=1)
+	c_t2_t0_t1_mem0 += INPUT_mem_r
+	S += c_t2_t0_t1_mem0-1 <= c_t2_t0_t1
+
+	c_t2_t0_t1_mem1 = S.Task('c_t2_t0_t1_mem1', length=1, delay_cost=1)
+	c_t2_t0_t1_mem1 += INPUT_mem_r
+	S += c_t2_t0_t1_mem1-1 <= c_t2_t0_t1
+
+	c_t2_t0_t2_in = S.Task('c_t2_t0_t2_in', length=1, delay_cost=1)
+	c_t2_t0_t2_in += alt(MAS_in)
+	c_t2_t0_t2 = S.Task('c_t2_t0_t2', length=1, delay_cost=1)
+	c_t2_t0_t2 += alt(MAS)
+
+	S += c_t2_t0_t2>=c_t2_t0_t2_in
+
+	c_t2_t0_t2_mem0 = S.Task('c_t2_t0_t2_mem0', length=1, delay_cost=1)
+	c_t2_t0_t2_mem0 += INPUT_mem_r
+	S += c_t2_t0_t2_mem0-1 <= c_t2_t0_t2
+
+	c_t2_t0_t2_mem1 = S.Task('c_t2_t0_t2_mem1', length=1, delay_cost=1)
+	c_t2_t0_t2_mem1 += INPUT_mem_r
+	S += c_t2_t0_t2_mem1-1 <= c_t2_t0_t2
+
+	c_t2_t0_t3_in = S.Task('c_t2_t0_t3_in', length=1, delay_cost=1)
+	c_t2_t0_t3_in += alt(MAS_in)
+	c_t2_t0_t3 = S.Task('c_t2_t0_t3', length=1, delay_cost=1)
+	c_t2_t0_t3 += alt(MAS)
+
+	S += c_t2_t0_t3>=c_t2_t0_t3_in
+
+	c_t2_t0_t3_mem0 = S.Task('c_t2_t0_t3_mem0', length=1, delay_cost=1)
+	c_t2_t0_t3_mem0 += INPUT_mem_r
+	S += c_t2_t0_t3_mem0-1 <= c_t2_t0_t3
+
+	c_t2_t0_t3_mem1 = S.Task('c_t2_t0_t3_mem1', length=1, delay_cost=1)
+	c_t2_t0_t3_mem1 += INPUT_mem_r
+	S += c_t2_t0_t3_mem1-1 <= c_t2_t0_t3
+
+	c_t2_t1_t0_in = S.Task('c_t2_t1_t0_in', length=1, delay_cost=1)
+	c_t2_t1_t0_in += alt(MUL_in)
+	c_t2_t1_t0 = S.Task('c_t2_t1_t0', length=4, delay_cost=1)
+	c_t2_t1_t0 += alt(MUL)
+	S += c_t2_t1_t0>=c_t2_t1_t0_in
+
+	c_t2_t1_t0_mem0 = S.Task('c_t2_t1_t0_mem0', length=1, delay_cost=1)
+	c_t2_t1_t0_mem0 += INPUT_mem_r
+	S += c_t2_t1_t0_mem0-1 <= c_t2_t1_t0
+
+	c_t2_t1_t0_mem1 = S.Task('c_t2_t1_t0_mem1', length=1, delay_cost=1)
+	c_t2_t1_t0_mem1 += INPUT_mem_r
+	S += c_t2_t1_t0_mem1-1 <= c_t2_t1_t0
+
+	c_t2_t1_t1_in = S.Task('c_t2_t1_t1_in', length=1, delay_cost=1)
+	c_t2_t1_t1_in += alt(MUL_in)
+	c_t2_t1_t1 = S.Task('c_t2_t1_t1', length=4, delay_cost=1)
+	c_t2_t1_t1 += alt(MUL)
+	S += c_t2_t1_t1>=c_t2_t1_t1_in
+
+	c_t2_t1_t1_mem0 = S.Task('c_t2_t1_t1_mem0', length=1, delay_cost=1)
+	c_t2_t1_t1_mem0 += INPUT_mem_r
+	S += c_t2_t1_t1_mem0-1 <= c_t2_t1_t1
+
+	c_t2_t1_t1_mem1 = S.Task('c_t2_t1_t1_mem1', length=1, delay_cost=1)
+	c_t2_t1_t1_mem1 += INPUT_mem_r
+	S += c_t2_t1_t1_mem1-1 <= c_t2_t1_t1
+
+	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
+
+	solution = [['hoge']*len(S.solution()[1]) for i in range(len(S.solution()))]
+	for i in range(len(S.solution())):
+		for j in range(len(S.solution()[i])):
+			solution[i][j]=str(S.solution()[i][j])
+	print(solution)
+
+	cycles = int(solution[-1][3])
+
+	pic_file_name = "/home/mfukuda/ABE/python/scheduling/result/MUL_mul1_4_add1_1/schedule0.png"
+	if(S.solution() != []):
+		plotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, 5))
+
+	return solution
+

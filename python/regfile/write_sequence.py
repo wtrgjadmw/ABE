@@ -4,7 +4,7 @@ import sys
 import argparse
 import traceback
 import csv
-from python.gen_inst.inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
+from python.gen_inst.regfile.inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
 
 
 def value2num(value):
@@ -57,7 +57,7 @@ class schedulingData:
         self.formulas = formulas
         self.seq_finish_time = 0
         self.inv_start_time = -2
-        self.solution_data_list = {}
+        self.solution_data_list: dict[solutionData] = {}
         self.mem_table = mem_table
         self.mem_data_list = {}
         self.ram_num_list = {}
@@ -125,19 +125,19 @@ class schedulingData:
             end_time = memory_data.end
             operator = self.solution_data_list[value].operator
             is_added = False
-            if self.mem_data_list[value].is_output:
-                self.inst_list[start_time].set_mem_write(operator=operator, waddr=self.mem_data_list[value].addr, mask=self.is_ladder)
+            if memory_data.is_output:
+                self.inst_list[start_time].set_mem_write(operator=operator, waddr=memory_data.addr, mask=self.is_ladder)
                 continue
             for i in range(len(self.mem_addr_list)):
                 if self.mem_addr_list[i] <= start_time:
                     self.inst_list[start_time].set_mem_write(operator=operator, waddr=i + self.index_to_add, mask=self.is_ladder)
-                    self.mem_data_list[value].set_addr(i + self.index_to_add)
+                    memory_data.set_addr(i + self.index_to_add)
                     self.mem_addr_list[i] = end_time
                     is_added = True
                     break
             if not is_added:
                 self.inst_list[start_time].set_mem_write(operator=operator, waddr=len(self.mem_addr_list) + self.index_to_add, mask=self.is_ladder)
-                self.mem_data_list[value].set_addr(len(self.mem_addr_list) + self.index_to_add)
+                memory_data.set_addr(len(self.mem_addr_list) + self.index_to_add)
                 self.mem_addr_list.append(end_time)
             # print(self.mem_addr_list)
 
