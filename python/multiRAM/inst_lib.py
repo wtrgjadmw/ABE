@@ -12,53 +12,53 @@ class solutionData:
 
 class ALUInstruction:
     def __init__(self) -> None:
-        self.REGF_raddra = 0
-        self.REGF_raddr_maska = 0
-        self.muxa = 0
-        self.REGF_raddrb = 0
-        self.REGF_raddr_maskb = 0
-        self.muxb = 0
-        self.REGF_raddrc = 0
-        self.muxc = 0
-        self.REGF_raddrd = 0
-        self.muxd = 0
-
-        self.issub = 0
+        self.MM_raddra = 0
+        self.MM_muxa = 0
+        self.MM_raddrb = 0
+        self.MM_muxb = 0
         self.MM_val = 0
+
+        self.MM_waddr = 0
+        self.MM_we = 0
+
+
+        self.MAS_raddra = 0
+        self.MAS_muxa = 0
+        self.MAS_raddrb = 0
+        self.MAS_muxb = 0
+        self.issub = 0
         self.MAS_val = 0
 
-        self.REGF_waddra = 0
-        self.REGF_waddr_maska = 0
-        self.REGF_wea = 0
-        self.wmuxa = 0
+        self.MAS_waddr = 0
+        self.MAS_we = 0
 
-        self.REGF_waddrb = 0
-        self.REGF_waddr_maskb = 0
-        self.REGF_web = 0
+
+        self.MAIN_raddra = 0
+        self.MAIN_READ_maska = 0
+        self.MAIN_raddrb = 0
+        self.MAIN_READ_maskb = 0
+        self.MAIN_waddr = 0
+        self.MAIN_WRITE_mask = 0
+        self.MAIN_we = 0
+        self.MAIN_WRITE_mux = 0
 
         self.condKey0 = 0
         self.condKey1 = 0
         self.conInst = 0
         self.endInst = 0
-        self.DRAM_addra = 0
-        self.DRAM_wea = 0
-        self.DRAM_addrb = 0
-        self.DRAM_web = 0
 
-    def set_operator_inst(self, operation, operand_index, ram_type, raddr: int, mux: int, mask=False):
+    def set_mem_read(self, operation, operand_index, ram_type, raddr: int, mux: int, mask=False):
         if "MUL" == operation:
             if operand_index == 0:
-                self.muxa = mux
+                self.MM_muxa = mux
             else:  # operand_index == 1
-                self.muxb = mux
+                self.MM_muxb = mux
             self.MM_val = 1
         elif "ADD" == operation or "SUB" == operation:
             if operand_index == 0:
-                self.REGF_raddrc = raddr
-                self.muxc = mux
+                self.MAS_muxa = mux
             else:  # operand_index == 1
-                self.REGF_raddrd = raddr
-                self.muxd = mux
+                self.MAS_muxb = mux
             self.MAS_val = 1
             self.issub = 1 if "SUB" == operation else 0
         else:
@@ -67,35 +67,38 @@ class ALUInstruction:
         is_masked_addr = mask and raddr < 4
         if ram_type == "MUL":
             if operand_index == 0:
-                self.REGF_raddra = raddr
+                self.MM_raddra = raddr
             else:
-                self.REGF_raddrb = raddr
+                self.MM_raddrb = raddr
         elif ram_type == "ADD" or ram_type == "SUB":
             if operand_index == 0:
-                self.REGF_raddrc = raddr
+                self.MAS_raddra = raddr
             else:
-                self.REGF_raddrd = raddr
+                self.MAS_raddrb = raddr
         elif ram_type == "MAIN":
             if operand_index == 0:
-                self.REGF_raddre = raddr
-                self.REGF_raddr_maske = 1 if is_masked_addr else 0
+                self.MAIN_raddra = raddr
+                self.MAIN_READ_maska = 1 if is_masked_addr else 0
             else:
-                self.REGF_raddre = raddr
-                self.REGF_raddr_maske = 1 if is_masked_addr else 0
+                self.MAIN_raddrb = raddr
+                self.MAIN_READ_maskb = 1 if is_masked_addr else 0
 
 
-    def set_mem_write(self, operator, waddr: int, mask=False):
+    def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
         is_masked_addr = mask and waddr < 4
-        if "MUL" in operator:
-            self.REGF_waddra = waddr
-            self.REGF_waddr_maska = 1 if is_masked_addr else 0
-            self.REGF_wea = 1
-        elif "MAS" in operator:
-            self.REGF_waddrb = waddr
-            self.REGF_waddr_maskb = 1 if is_masked_addr else 0
-            self.REGF_web = 1
+        if "MUL" in ram_type:
+            self.MM_waddr = waddr
+            self.MM_we = 1
+        elif "MAS" in ram_type:
+            self.MAS_waddr = waddr
+            self.MAS_we = 1
+        elif "MAIN" in ram_type:
+            self.MAIN_waddr = waddr
+            self.MAIN_WRITE_mask = 1 if is_masked_addr else 0
+            self.MAIN_web = 1
+            self.MAIN_WRITE_mux = 0 if output_operator == "MUL" else 0
         else:
-            raise Exception("invalid operator: {}".format(operator))
+            raise Exception("invalid ram_type: {}".format(ram_type))
 
     def to_list(self):
         return [

@@ -40,10 +40,10 @@ class schedulingData:
             formulas: list,
             mem_table: dict,
             MULnum: int,
-            ADDnum: int,
+            MASnum: int,
             is_ladder: bool) -> None:
         self.MULnum = MULnum
-        self.ADDnum = ADDnum
+        self.MASnum = MASnum
 
         self.output_file_path = output_file_path
 
@@ -60,9 +60,6 @@ class schedulingData:
         self.solution_data_list: dict[solutionData] = {}
         self.mem_table = mem_table
         self.mem_data_list = {}
-        self.ram_num_list = {}
-        self.mem_ctrl_seq = [[]]
-        self.operator_init_seq = [[]]
 
         self.inst_list: list[ALUInstruction] = []
         self.mem_addr_list = []
@@ -94,8 +91,6 @@ class schedulingData:
                     opr1=formula[2], opr2=formula[3], operator=operator_name, operation=formula[1], start=start_time, end=end_time)
                 # print("{}, {}".format(value_name, start_time))
 
-        self.operator_init_seq = [[] for i in range(self.seq_finish_time + 1)]
-        self.mem_ctrl_seq = [[] for i in range(self.seq_finish_time + 1)]
         self.inst_list = [ALUInstruction() for i in range(self.seq_finish_time + 1)]
 
     def set_mem_data(self):
@@ -179,26 +174,6 @@ class schedulingData:
                 continue
             self.set_operator_inst(data)
 
-    def ram_result_input(self):
-        for out in self.output:
-            operator = self.solution_data_list[out]["operator"].upper()
-            write_t = self.solution_data_list[out]["end_time"] - 1
-            ram_num = self.ram_num_list[out + "_w"]
-            if "w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num) in self.mem_ctrl_seq[write_t]:
-                index = self.mem_ctrl_seq[write_t].index("w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num))
-                self.mem_ctrl_seq[write_t][index] = "w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num)
-            else:
-                self.mem_ctrl_seq[write_t].append("w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num))
-            is_const = False
-            out = out.replace("NEW_", "").replace("_", "")
-            if not is_const:
-                num = value2num(out)
-                waddr = "ret_addr + `RAM_ADDR_SIZE'd{0}".format(num)
-            self.mem_ctrl_seq[write_t].append("waddr{ram_num}_reg <= {waddr};\n".format(ram_num=ram_num, waddr=waddr))
-            self.mem_ctrl_seq[write_t].append("wdata_s{ram_num} <= `{operator};\n".format(ram_num=ram_num, operator=operator))
-            if "w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num) not in self.mem_ctrl_seq[write_t + 1]:
-                self.mem_ctrl_seq[write_t + 1].append("w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num))
-
     def make_sequence(self):
         self.set_solution_data()
         self.set_mem_data()
@@ -251,8 +226,6 @@ if __name__ == "__main__":
     formulas = [[]]
     mem_table = {}
 
-    state_sizes = {}
-
     # for root, dirs, files in os.walk("{}/scheduling/result".format(target_dir)):
     #     for file in files:
     #         if file[-4:] != ".txt":
@@ -261,7 +234,6 @@ if __name__ == "__main__":
     os.makedirs(target_dir, exist_ok=True)
     output_file_path = "{}/RAMINIT_Inst.mem".format(target_dir)
     result_file_path = "./scheduling/ladderMul_mul{}_{}_add{}_{}/result.txt".format(mulNum, mul_stage, addNum, add_stage)
-    mem_table = {}
     # read scheduling result file
     exec(open(result_file_path, 'r', encoding="utf-8").read())
 
@@ -273,7 +245,7 @@ if __name__ == "__main__":
         formulas=formulas,
         mem_table=mem_table,
         MULnum=1,
-        ADDnum=1,
+        MASnum=1,
         is_ladder=True)
     try:
         ladder_sche_data.make_sequence()
@@ -299,7 +271,7 @@ if __name__ == "__main__":
         formulas=formulas,
         mem_table=mem_table,
         MULnum=1,
-        ADDnum=1,
+        MASnum=1,
         is_ladder=False)
     try:
         yrecover_sche_result.make_sequence()
