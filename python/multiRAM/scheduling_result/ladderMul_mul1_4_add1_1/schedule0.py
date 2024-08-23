@@ -13,7 +13,7 @@ def solve():
 	MAS_in = S.Resources('MAS_in', num=1)
 	MUL_MEM = S.Resources('MUL_MEM', num=1, size=2)
 	MAS_MEM = S.Resources('MAS_MEM', num=1, size=2)
-	MAIN_MEM_w = S.Resource('MAIN_MEM_w', size=2)
+	MAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)
 	MAIN_MEM_r = S.Resource('MAIN_MEM_r', size=2)
 
 	# result of previous scheduling
@@ -508,7 +508,7 @@ def solve():
 
 	cycles = int(solution[-1][3])
 
-	pic_file_name = "/home/mfukuda/ABE/python/gen_inst/multiRAM/scheduling_result/ladderMul_mul1_4_add1_1/schedule0.png"
+	pic_file_name = "/home/mfukuda/ABE/python/multiRAM/scheduling_result/ladderMul_mul1_4_add1_1/schedule0.png"
 	if(S.solution() != []):
 		plotters.matplotlib.plot(S,img_filename=pic_file_name, fig_size=(cycles*0.25+3, 5))
 

@@ -4,7 +4,7 @@ import sys
 import argparse
 import traceback
 
-from inst_lib import solutionData, ALURAMIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_header, write_raminit_aluram, write_raminit_cmdaddr
+from inst_lib import solutionData, ALUInstIndex, ALUInstruction, new_inst, set_init_inst, set_Fpinv_preprocess_inst, set_Fpinv_inst, set_yrecover2_inst, write_raminit_aluram, write_raminit_cmdaddr, MUXConst
 
 
 def value2num(value):
@@ -51,17 +51,16 @@ class schedulingData:
         self.input = input
         self.output = output
         # saved in MAIN_MEM
-        self.const_addr_list = {"X1": 0, "X2": 1, "Z1": 2, "Z2": 3, "PX": 4, "PY": 5, "ZERO": 6, "ONE": 7, "A": 8, "B": 9, "4B": 10}
+        self.const_addr_list = {"ZERO": 0, "ONE": 1, "A": 2, "B": 3, "4B": 4, "PX": 5, "PY": 6, "X1": 7, "X2": 8, "Z1": 9, "Z2": 10}
         self.index_to_add = 11
 
-        self.scheduling_solution = scheduling_solution[1:]
+        self.scheduling_solution = scheduling_solution
         self.formulas = formulas
         self.seq_finish_time = 0
         self.inv_start_time = -2
         self.solution_data_list: dict[str, solutionData] = {}
         self.mem_table = mem_table
         self.mem_data_list: dict[str, memoryData] = {}
-        self.mem_ctrl_seq = [[]]
         self.operator_init_seq = [[]]
 
         self.inst_list: list[ALUInstruction] = []
@@ -105,28 +104,25 @@ class schedulingData:
         for sol in self.scheduling_solution:
             if sol[0][-3:] == "_in":
                 continue
+            start_time = int(sol[2]) - 1
+            end_time = int(sol[3]) - 1
             if sol[0][-2:] == "_w":
+                self.seq_finish_time = max(self.seq_finish_time, end_time)
                 continue
             value_name = sol[0]
             operator_name = sol[1]
-            start_time = int(sol[2]) - 1
-            end_time = int(sol[3]) - 1
-            self.seq_finish_time = max(self.seq_finish_time, end_time)
             if "_mem" not in value_name:
                 formula = self.find_formula(value_name)
                 self.solution_data_list[value_name] = solutionData(
                     opr1=formula[2], opr2=formula[3], operator=operator_name, operation=formula[1], start=start_time, end=end_time)
-        self.operator_init_seq = [[] for i in range(self.seq_finish_time + 1)]
-        self.mem_ctrl_seq = [[] for i in range(self.seq_finish_time + 1)]
-        self.inst_list = [ALUInstruction() for i in range(self.seq_finish_time + 1)]
+        self.operator_init_seq = [[] for i in range(self.seq_finish_time)]
+        self.inst_list = [ALUInstruction() for i in range(self.seq_finish_time)]
 
     def set_mem_data(self):
-        # mem_is_second = copy.copy(self.default_mem_is_second)
-        # tmp = 0
         for sol in self.scheduling_solution:
             mem_value_name = sol[0]
-            start_time = int(sol[2]) - 1
-            end_time = int(sol[3]) - 1
+            start_time = int(sol[2])
+            end_time = int(sol[3])
             if "_mem" in mem_value_name:
                 value_name = self.mem_table[mem_value_name]
                 if value_name in self.input:
@@ -135,10 +131,14 @@ class schedulingData:
                 if self.solution_data_list[value_name].end < start_time:
                     self.mem_data_list[value_name] = memoryData(start=self.solution_data_list[value_name].end, end=start_time, ram_type=operator)
             if "_w" in mem_value_name:
+                if value_name in self.input:
+                    continue
+                operator = self.solution_data_list[value_name].operator
                 for output_value in self.output:
                     if output_value == mem_value_name[:-2]:
-                        self.mem_data_list[output_value] = memoryData(start=start_time, end=end_time, ram_type="MAIN", addr=self.const_addr_list[output_value[:-4]], is_output=True)
-                        self.mem_data_list[output_value].set_addr(self.const_addr_list[output_value[:-4]])
+                        # self.mem_data_list[output_value] = memoryData(start=start_time, end=end_time, ram_type="MAIN", addr=self.const_addr_list[output_value[:-4]], is_output=True)
+                        # self.mem_data_list[output_value].set_addr(self.const_addr_list[output_value[:-4]])
+                        self.inst_list[start_time-1].set_mem_write(output_operator=self.solution_data_list[mem_value_name[:-2]].operation, ram_type="MAIN", waddr=self.const_addr_list[output_value[:-4]], mask=self.is_ladder)
 
     # RAMのアドレス割り当て＋書き込み制御
     # cをアドレス2番地に割り当てる場合
@@ -170,30 +170,31 @@ class schedulingData:
             time = data.start
             if operand_name in self.input:
                 # print(time, value_name, operand_name, self.const_addr_list[operand_name])
-                self.inst_list[time].set_mem_read(
-                    operation=data.operation,
+                mux = self.inst_list[time].set_mem_read(
                     operand_index=i,
                     ram_type="MAIN",
                     raddr=self.const_addr_list[operand_name],
-                    mux=0,
                     mask=self.is_ladder)
+                self.inst_list[time].set_operator_mux(operation=data.operation, operand_index=i, mux=mux)
                 continue
             operand_data = self.solution_data_list[operand_name]
             if time > operand_data.end:
+                print(value_name, operand_name)
                 ram_type = self.mem_data_list[operand_name].ram_type
                 raddr = self.mem_data_list[operand_name].addr
                 # print(time, value_name, operand_name, ram_addr)
-                self.inst_list[time].set_mem_read(operation=data.operation, operand_index=i, ram_type=ram_type, raddr=raddr, mux=0, mask=self.is_ladder)
+                mux = self.inst_list[time].set_mem_read(operand_index=i, ram_type=ram_type, raddr=raddr, mask=self.is_ladder)
+                self.inst_list[time].set_operator_mux(operation=data.operation, operand_index=i, mux=mux)
                 continue
             operand_operator = operand_data.operator
             # print(time, value_name, operand_name, operand_operator)
             if "MUL" in operand_operator:
-                self.inst_list[time].set_mem_read(operation=data.operation, operand_index=i, ram_type="", raddr=0, mux=1, mask=self.is_ladder)
+                self.inst_list[time].set_operator_mux(operation=data.operation, operand_index=i, mux=MUXConst.MM_SC)
             elif "MAS" in operand_operator:
-                self.inst_list[time].set_mem_read(operation=data.operation, operand_index=i, ram_type="", raddr=0, mux=2, mask=self.is_ladder)
+                self.inst_list[time].set_operator_mux(operation=data.operation, operand_index=i, mux=MUXConst.MAS_SC)
             elif "INV" in operand_operator:
                 # TODO: fix
-                self.inst_list[time].set_mem_read(operation=data.operation, operand_index=i, ram_type="", raddr=0, mux=3, mask=self.is_ladder)
+                self.inst_list[time].set_operator_mux(operation=data.operation, operand_index=i, mux=1)
             else:
                 raise Exception("invalid operator: {}".format(operand_operator))
         if value_name in self.mem_data_list.keys():
@@ -206,36 +207,11 @@ class schedulingData:
                 continue
             self.set_operator_inst(value_name, data)
 
-    def ram_result_input(self):
-        for out in self.output:
-            operator = self.solution_data[out]["operator"].upper()
-            write_t = self.solution_data[out]["end_time"] - 1
-            ram_num = self.ram_num_list[out + "_w"]
-            if "w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num) in self.mem_ctrl_seq[write_t]:
-                index = self.mem_ctrl_seq[write_t].index("w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num))
-                self.mem_ctrl_seq[write_t][index] = "w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num)
-            else:
-                self.mem_ctrl_seq[write_t].append("w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num))
-            is_const = False
-            out = out.replace("NEW_", "").replace("_", "")
-            for const in self.consts:
-                if const in out:
-                    waddr = "`RAM_{0}".format(const)
-                    is_const = True
-            if not is_const:
-                num = value2num(out)
-                waddr = "ret_addr + `RAM_ADDR_SIZE'd{0}".format(num)
-            self.mem_ctrl_seq[write_t].append("waddr{ram_num}_reg <= {waddr};\n".format(ram_num=ram_num, waddr=waddr))
-            self.mem_ctrl_seq[write_t].append("wdata_s{ram_num} <= `{operator};\n".format(ram_num=ram_num, operator=operator))
-            if "w{ram_num}_n_reg <= 0;\n".format(ram_num=ram_num) not in self.mem_ctrl_seq[write_t + 1]:
-                self.mem_ctrl_seq[write_t + 1].append("w{ram_num}_n_reg <= 1;\n".format(ram_num=ram_num))
-
     def make_sequence(self):
         self.set_solution_data()
         self.set_mem_data()
         self.assign_ram_addr()
         self.operator_init()
-        # self.ram_result_input()
 
 def file_replace(old_filename, new_filename, old_str, new_str):
     with open(old_filename, "r") as file:
@@ -298,3 +274,11 @@ if __name__ == "__main__":
     # print(ladder_sche_data.mem_data_list)
     for value, memory_data in ladder_sche_data.mem_data_list.items():
         print(value, vars(memory_data))
+    for inst in ladder_sche_data.inst_list:
+        print(vars(inst))
+
+    alu_ram_index = ALUInstIndex()
+    ladder_inst_list = alu_ram_index.convertClass2Inst(ladder_sche_data.inst_list)
+    with open(output_file_path, "w") as f:
+        for ladder_inst in ladder_inst_list:
+            f.write(format(ladder_inst, f'0{alu_ram_index.inst_bytes}X')+"\n")

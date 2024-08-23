@@ -201,7 +201,7 @@ def make_pyschedule(
     )
 
     # 2write-2read RAM
-    f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=2)\n")
+    f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)\n")
     f_write.write("\tMAIN_MEM_r = S.Resource('MAIN_MEM_r', size=2)\n")
 
     multi_resources = ["MUL", "MUL_in", "MAS", "MAS_in", "MUL_MEM", "MAS_MEM"]

@@ -1,5 +1,14 @@
 from inst_template import init_insts, Fpinv_insts, Fpinv_preprocess_insts, yrecover2_insts
 
+class MUXConstClass:
+    MM_MEM = 0
+    MAS_MEM = 1
+    MM_SC = 2
+    MAS_SC = 3
+    MAIN_MEM = 4
+
+MUXConst = MUXConstClass()
+
 
 class solutionData:
     def __init__(self, opr1, opr2, operator, operation, start, end) -> None:
@@ -34,20 +43,47 @@ class ALUInstruction:
 
 
         self.MAIN_raddra = 0
-        self.MAIN_READ_maska = 0
         self.MAIN_raddrb = 0
-        self.MAIN_READ_maskb = 0
         self.MAIN_waddr = 0
-        self.MAIN_WRITE_mask = 0
         self.MAIN_we = 0
         self.MAIN_WRITE_mux = 0
+
+        self.MAIN_READ_maska = 0
+        self.MAIN_READ_maskb = 0
+        self.MAIN_WRITE_mask = 0
 
         self.condKey0 = 0
         self.condKey1 = 0
         self.conInst = 0
         self.endInst = 0
 
-    def set_mem_read(self, operation, operand_index, ram_type, raddr: int, mux: int, mask=False):
+    def set_mem_read(self, operand_index, ram_type, raddr: int, mask=False):
+        is_masked_addr = mask and raddr < 4
+        if "MUL" in ram_type:
+            if operand_index == 0:
+                self.MM_raddra = raddr
+            else:
+                self.MM_raddrb = raddr
+            mux = MUXConst.MM_MEM
+        elif "MAS" in ram_type:
+            if operand_index == 0:
+                self.MAS_raddra = raddr
+            else:
+                self.MAS_raddrb = raddr
+            mux = MUXConst.MAS_MEM
+        elif ram_type == "MAIN":
+            if operand_index == 0:
+                self.MAIN_raddra = raddr
+                self.MAIN_READ_maska = 1 if is_masked_addr else 0
+            else:
+                self.MAIN_raddrb = raddr
+                self.MAIN_READ_maskb = 1 if is_masked_addr else 0
+            mux = MUXConst.MAIN_MEM
+        else:
+            raise Exception("invalid BRAM type: {}".format(ram_type))
+        return mux
+
+    def set_operator_mux(self, operation, operand_index, mux):
         if "MUL" == operation:
             if operand_index == 0:
                 self.MM_muxa = mux
@@ -63,26 +99,6 @@ class ALUInstruction:
             self.issub = 1 if "SUB" == operation else 0
         else:
             raise Exception("invalid operator: {}".format(operation))
-        
-        is_masked_addr = mask and raddr < 4
-        if ram_type == "MUL":
-            if operand_index == 0:
-                self.MM_raddra = raddr
-            else:
-                self.MM_raddrb = raddr
-        elif ram_type == "ADD" or ram_type == "SUB":
-            if operand_index == 0:
-                self.MAS_raddra = raddr
-            else:
-                self.MAS_raddrb = raddr
-        elif ram_type == "MAIN":
-            if operand_index == 0:
-                self.MAIN_raddra = raddr
-                self.MAIN_READ_maska = 1 if is_masked_addr else 0
-            else:
-                self.MAIN_raddrb = raddr
-                self.MAIN_READ_maskb = 1 if is_masked_addr else 0
-
 
     def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
         is_masked_addr = mask and waddr < 4
@@ -95,7 +111,7 @@ class ALUInstruction:
         elif "MAIN" in ram_type:
             self.MAIN_waddr = waddr
             self.MAIN_WRITE_mask = 1 if is_masked_addr else 0
-            self.MAIN_web = 1
+            self.MAIN_we = 1
             self.MAIN_WRITE_mux = 0 if output_operator == "MUL" else 0
         else:
             raise Exception("invalid ram_type: {}".format(ram_type))
@@ -156,55 +172,92 @@ class ALUInstruction:
         ] = addr_list
 
 
-class ALURAMIndex:
-    def __init__(self, max_addr: int, cal_mux: int) -> None:
-        self.mem_size = max_addr + 1
-        self.addr_bits = max_addr.bit_length()
-        self.cal_mux_bits = cal_mux.bit_length()
-        mm_inst_bits = self.addr_bits + self.cal_mux_bits + 1
-        add_inst_bits = self.addr_bits + self.cal_mux_bits
-        self.alu_inst_bits = mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits * 2 + 8
-        self.outbram_addr_bits = 4
-        self.inst_bits = self.alu_inst_bits + 14
+class ALUInstIndex:
+    def __init__(self):
+        MM_MEM_ADDR_BITS = 8
+        MAS_MEM_ADDR_BITS = 7
+        MAIN_MEM_ADDR_BITS = 7
+
+        INST_CAL_MUX_BIT = 3
+        INST_MAIN_MEM_MUX_BIT = 2
+        INST_ADDR_MASK_BIT = 1
+        INST_MM_MAS_VAL_BIT = 1
+        INST_MAS_ISSUB_BIT = 1
+        INST_WRITE_MUX_BIT = 1
+        INST_WRITE_EN_BIT = 1
+
+        MM_raddra = 0
+        MM_muxa = MM_raddra + MM_MEM_ADDR_BITS
+        MM_raddrb = MM_muxa + INST_CAL_MUX_BIT
+        MM_muxb = MM_raddrb + MM_MEM_ADDR_BITS
+        MM_val = MM_muxb + INST_CAL_MUX_BIT
+        MM_waddr = MM_val + INST_MM_MAS_VAL_BIT
+        MM_we = MM_waddr + MM_MEM_ADDR_BITS
+
+        MAS_raddra = MM_we + INST_WRITE_EN_BIT
+        MAS_muxa = MAS_raddra + MAS_MEM_ADDR_BITS
+        MAS_raddrb = MAS_muxa + INST_CAL_MUX_BIT
+        MAS_muxb = MAS_raddrb + MAS_MEM_ADDR_BITS
+        issub = MAS_muxb + INST_CAL_MUX_BIT
+        MAS_val = issub + INST_MAS_ISSUB_BIT
+        MAS_waddr = MAS_val + INST_MM_MAS_VAL_BIT
+        MAS_we = MAS_waddr + MAS_MEM_ADDR_BITS
+
+        MAIN_raddra = MAS_we + INST_WRITE_EN_BIT
+        MAIN_raddrb = MAIN_raddra + MAIN_MEM_ADDR_BITS
+        MAIN_waddr = MAIN_raddrb + MAIN_MEM_ADDR_BITS
+        MAIN_we = MAIN_waddr + MAIN_MEM_ADDR_BITS
+        MAIN_WRITE_mux = MAIN_we + INST_WRITE_EN_BIT
+        self.alu_inst_bits = MAIN_WRITE_mux + INST_WRITE_MUX_BIT
+
+        MAIN_READ_maska = MAIN_WRITE_mux + INST_WRITE_MUX_BIT
+        MAIN_READ_maskb = MAIN_READ_maska + INST_ADDR_MASK_BIT
+        MAIN_WRITE_mask = MAIN_READ_maskb + INST_ADDR_MASK_BIT
+
+        condKey0 = MAIN_WRITE_mask + INST_ADDR_MASK_BIT
+        condKey1 = condKey0 + 1
+        conInst = condKey1 + 1
+        endInst = conInst + 1
+        self.inst_bits = endInst + 1
         self.inst_bytes = self.inst_bits // 4 + (0 if self.inst_bits % 4 == 0 else 1)
 
-        self.bit_index_list = {
-            "REGF_raddra": 0,
-            "REGF_raddr_maska": self.addr_bits,
-            "muxa": self.addr_bits + 1,
-            "REGF_raddrb": mm_inst_bits,
-            "REGF_raddr_maskb": mm_inst_bits + self.addr_bits,
-            "muxb": mm_inst_bits + self.addr_bits + 1,
-            "REGF_raddrc": mm_inst_bits * 2,
-            "muxc": mm_inst_bits * 2 + self.addr_bits,
-            "REGF_raddrd": mm_inst_bits * 2 + add_inst_bits,
-            "muxd": mm_inst_bits * 2 + add_inst_bits + self.addr_bits,
-            "issub": mm_inst_bits * 2 + add_inst_bits * 2,
-            "MM_val": mm_inst_bits * 2 + add_inst_bits * 2 + 1,
-            "MAS_val": mm_inst_bits * 2 + add_inst_bits * 2 + 2,
-            "REGF_waddra": mm_inst_bits * 2 + add_inst_bits * 2 + 3,
-            "REGF_waddr_maska": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 3,
-            "REGF_wea": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 4,
-            "wmuxa": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 5,
-            "REGF_waddrb": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits + 6,
-            "REGF_waddr_maskb": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits*2 + 6,
-            "REGF_web": mm_inst_bits * 2 + add_inst_bits * 2 + self.addr_bits*2 + 7,
-            "condKey0": self.alu_inst_bits,
-            "condKey1": self.alu_inst_bits + 1,
-            "conInst": self.alu_inst_bits + 2,
-            "endInst": self.alu_inst_bits + 3,
-            "DRAM_addra": self.alu_inst_bits + 4,
-            "DRAM_wea": self.alu_inst_bits + self.outbram_addr_bits + 4,
-            "DRAM_addrb": self.alu_inst_bits + self.outbram_addr_bits + 5,
-            "DRAM_web": self.alu_inst_bits + self.outbram_addr_bits * 2 + 5,
+
+        self.index_list = {
+            "MM_raddra": MM_raddra,
+            "MM_muxa": MM_muxa,
+            "MM_raddrb": MM_raddrb,
+            "MM_muxb": MM_muxb,
+            "MM_val": MM_val,
+            "MM_waddr": MM_waddr,
+            "MM_we": MM_we,
+            "MAS_raddra": MAS_raddra,
+            "MAS_muxa": MAS_muxa,
+            "MAS_raddrb": MAS_raddrb,
+            "MAS_muxb": MAS_muxb,
+            "issub": issub,
+            "MAS_val": MAS_val,
+            "MAS_waddr": MAS_waddr,
+            "MAS_we": MAS_we,
+            "MAIN_raddra": MAIN_raddra,
+            "MAIN_raddrb": MAIN_raddrb,
+            "MAIN_waddr": MAIN_waddr,
+            "MAIN_we": MAIN_we,
+            "MAIN_WRITE_mux": MAIN_WRITE_mux,
+            "MAIN_READ_maska": MAIN_READ_maska,
+            "MAIN_READ_maskb": MAIN_READ_maskb,
+            "MAIN_WRITE_mask": MAIN_WRITE_mask,
+            "condKey0": condKey0,
+            "condKey1": condKey1,
+            "conInst": conInst,
+            "endInst": endInst
         }
 
-    def convertInst(self, instList: list[ALUInstruction]):
+    def convertClass2Inst(self, instList: list[ALUInstruction]):
         hexInstList = []
         for inst in instList:
             tmp_hexinst = 0
             for key, value in inst.__dict__.items():
-                tmp_hexinst |= value << self.bit_index_list[key]
+                tmp_hexinst |= value << self.index_list[key]
                 # print(key, self.bit_index_list[key])
             hexInstList.append(tmp_hexinst)
         return hexInstList
@@ -215,7 +268,7 @@ def new_inst(inst):
     alu_inst.init_default_value(inst)
     return alu_inst
 
-def set_init_inst(alu_ram_index: ALURAMIndex, add_stage: int):
+def set_init_inst(add_stage: int):
     inst_list = [ALUInstruction() for i in range(max(5, 3 + add_stage))]
     inst_list[0].set_operator_inst("ADD", 0, 6, 0)
     inst_list[0].set_operator_inst("ADD", 1, 7, 0)
@@ -237,22 +290,22 @@ def set_init_inst(alu_ram_index: ALURAMIndex, add_stage: int):
     inst_list[4].set_mem_write("MUL", 5)
     inst_list[4].wmuxa = 1
     
-    inst_hex_list = alu_ram_index.convertInst(inst_list)
+    inst_hex_list = convertClass2Inst(inst_list)
     return inst_hex_list
 
 
-def set_Fpinv_preprocess_inst(alu_ram_index: ALURAMIndex, mul_stage: int):
+def set_Fpinv_preprocess_inst(mul_stage: int):
     inst_list: list[ALUInstruction] = []
     inst_list.append(new_inst(Fpinv_preprocess_insts[0]))
     for i in range(mul_stage-1):
         inst_list.append(new_inst([0 for j in range(len(Fpinv_preprocess_insts[0]))]))
     inst_list.append(new_inst(Fpinv_preprocess_insts[1]))
     inst_list[-3].condKey1 = 1
-    inst_hex_list = alu_ram_index.convertInst(inst_list)
+    inst_hex_list = convertClass2Inst(inst_list)
     return inst_hex_list
 
 
-def set_Fpinv_inst(alu_ram_index: ALURAMIndex, mul_stage: int):
+def set_Fpinv_inst(mul_stage: int):
     inst_list: list[ALUInstruction] = []
     inst_list.append(new_inst(Fpinv_insts[0]))
     inst_list.append(new_inst(Fpinv_insts[1]))
@@ -263,11 +316,11 @@ def set_Fpinv_inst(alu_ram_index: ALURAMIndex, mul_stage: int):
     inst_list[-5].conInst = 1
     inst_list[-3].condKey1 = 1
     inst_list[-3].condKey0 = 1
-    inst_hex_list = alu_ram_index.convertInst(inst_list)
+    inst_hex_list = convertClass2Inst(inst_list)
     return inst_hex_list
 
 
-def set_yrecover2_inst(alu_ram_index: ALURAMIndex, mul_stage: int):
+def set_yrecover2_inst(mul_stage: int):
     inst_list: list[ALUInstruction] = []
     inst_list.append(new_inst(yrecover2_insts[0]))
     inst_list.append(new_inst(yrecover2_insts[1]))
@@ -277,10 +330,10 @@ def set_yrecover2_inst(alu_ram_index: ALURAMIndex, mul_stage: int):
     inst_list.append(new_inst(yrecover2_insts[3]))
     inst_list.append(new_inst(yrecover2_insts[4]))
     inst_list.append(new_inst(yrecover2_insts[5]))
-    inst_hex_list = alu_ram_index.convertInst(inst_list)
+    inst_hex_list = convertClass2Inst(inst_list)
     return inst_hex_list
 
-def write_header(target_dir: str, alu_ram_index: ALURAMIndex, inst_num: int):
+# def write_header(target_dir: str, inst_num: int):
     with open("{}/header_ALU.vh".format(target_dir), "w") as f:
         f.write("`define ALU_INST_BITS {}\n".format(alu_ram_index.alu_inst_bits))
         f.write("`define ALU_MEM_SIZE {}\n".format(alu_ram_index.mem_size))
@@ -334,3 +387,4 @@ def write_raminit_cmdaddr(target_dir: str, mul_stage, add_stage, ladder_cycle, y
     with open("{}/RAMINIT_CmdAddr.mem".format(target_dir), "w") as f:
         for cmdaddr in cmdaddr_list:
             f.write("{:0=16b}\n".format(cmdaddr))
+    
