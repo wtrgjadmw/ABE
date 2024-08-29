@@ -6,6 +6,8 @@ class MUXConstClass:
     MM_SC = 2
     MAS_SC = 3
     MAIN_MEM = 4
+    MM_REG = 5
+    MAS_REG = 6
 
 MUXConst = MUXConstClass()
 
@@ -58,7 +60,6 @@ class ALUInstruction:
         self.endInst = 0
 
     def set_mem_read(self, operand_index, ram_type, raddr: int, mask=False):
-        is_masked_addr = mask and raddr < 4
         if "MUL" in ram_type:
             if operand_index == 0:
                 self.MM_raddra = raddr
@@ -72,6 +73,7 @@ class ALUInstruction:
                 self.MAS_raddrb = raddr
             mux = MUXConst.MAS_MEM
         elif ram_type == "MAIN":
+            is_masked_addr = mask and 0 <= raddr <= 3
             if operand_index == 0:
                 self.MAIN_raddra = raddr
                 self.MAIN_READ_maska = 1 if is_masked_addr else 0
@@ -101,7 +103,6 @@ class ALUInstruction:
             raise Exception("invalid operator: {}".format(operation))
 
     def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
-        is_masked_addr = mask and waddr < 4
         if "MUL" in ram_type:
             self.MM_waddr = waddr
             self.MM_we = 1
@@ -110,9 +111,10 @@ class ALUInstruction:
             self.MAS_we = 1
         elif "MAIN" in ram_type:
             self.MAIN_waddr = waddr
+            is_masked_addr = mask and 0 <= waddr <= 3
             self.MAIN_WRITE_mask = 1 if is_masked_addr else 0
             self.MAIN_we = 1
-            self.MAIN_WRITE_mux = 0 if output_operator == "MUL" else 0
+            self.MAIN_WRITE_mux = 0 if output_operator == "MUL" else 1
         else:
             raise Exception("invalid ram_type: {}".format(ram_type))
 

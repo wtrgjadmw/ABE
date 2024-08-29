@@ -77,7 +77,7 @@ def make_mem_task_definition(
         mem_value_name = "{0}_mem{1}".format(value, i)
         if operand in input_value:
             f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
-            f_write.write("\t{0} += MAIN_MEM_r\n".format(mem_value_name))
+            f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
         else:
             prev_formula = find_prev_formula(formulas, operand)
             pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
@@ -92,17 +92,17 @@ def make_mem_task_definition(
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MUL_MEM)\n".format(mem_value_name))
                     for j in range(MULnum):
-                        f_write.write("\tS += ({0}*MUL[{3}])-1 < {1}_mem{2}*MUL_MEM[{3}]\n".format(operand, value, i, j))
+                        f_write.write("\tS += ({0}*MUL[{3}])-1 < {1}_mem{2}*MUL_MEM[{4}]\n".format(operand, value, i, j, j*2+i))
                 else:
-                    f_write.write("\t{0} += MUL_MEM[{1}]\n".format(mem_value_name, pre_resource_num))
+                    f_write.write("\t{0} += MUL_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
             elif opcode == "ADD" or opcode == "SUB":
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
                     for j in range(ADDnum):
-                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{3}]\n".format(operand, value, i, j))
+                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, value, i, j, j*2+i))
                 else:
-                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num))
+                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
         f_write.write("\tS += {1} <= {0}\n\n".format(value, mem_value_name))
         mem_table[mem_value_name] = operand
@@ -194,15 +194,15 @@ def make_pyschedule(
 
     # 1write-2read RAM
     f_write.write(
-        "\tMUL_MEM = S.Resources('MUL_MEM', num={0}, size=2)\n".format(MULnum)
+        "\tMUL_MEM = S.Resources('MUL_MEM', num={0})\n".format(MULnum*2)
     )
     f_write.write(
-        "\tMAS_MEM = S.Resources('MAS_MEM', num={0}, size=2)\n".format(ADDnum)
+        "\tMAS_MEM = S.Resources('MAS_MEM', num={0})\n".format(ADDnum*2)
     )
 
     # 2write-2read RAM
     f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)\n")
-    f_write.write("\tMAIN_MEM_r = S.Resource('MAIN_MEM_r', size=2)\n")
+    f_write.write("\tMAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)\n")
 
     multi_resources = ["MUL", "MUL_in", "MAS", "MAS_in", "MUL_MEM", "MAS_MEM"]
     single_resources = ["INV", "MAIN_MEM_w", "MAIN_MEM_r"]
