@@ -1,0 +1,48 @@
+`timescale 1ns / 1ps
+
+`include "header_core.vh"
+
+module abe_core_alu(clk,rst,operate,INST1,ALU_din_en,ALU_din,ALU_dout);
+    parameter DAT_BITS = 381;
+    input wire clk;
+    input wire rst;
+    input wire operate; // Should be use to stop the usage when not used
+    input wire [`ALU_INST_BITS-1:0] INST1;
+    input wire ALU_din_en;
+    input wire [DAT_BITS-1:0] ALU_din;
+    output wire [DAT_BITS-1:0] ALU_dout;
+
+    reg [DAT_BITS-1:0] ALU_din_reg;
+    wire ALU_din_en_pipe;
+    always @ (posedge clk) begin
+        ALU_din_reg <= ALU_din;
+    end
+    pipe #( .DAT_BITS(1),.PIPE_STG(2),.FORCE_FF("false") )
+            pipe_din_en ( .clk(clk),.rst(rst),.din(ALU_din_en),.dout(ALU_din_en_pipe) );
+
+
+    // MAIN Memory and its relevant signals
+    wire [`INST_MAIN_MEM_MUX_BIT-1: 0] Main_MEM_MUX; 
+    wire MAIN_MEM_we;
+    wire [DAT_BITS-1:0] MAIN_MEM_douta,MAIN_MEM_doutb,MAIN_MEM_din;
+    wire [`ALU_MAIN_MEM_ADDR_BITS-1:0] MAIN_MEM_raddra,MAIN_MEM_raddrb,MAIN_MEM_waddr;
+
+    assign MAIN_MEM_waddr = INST2[`INDEX_MAIN_WRITE +: `ALU_MAIN_MEM_ADDR_BITS];
+    assign MAIN_MEM_raddra = INST1[`INDEX_MAIN_READA +: `ALU_MAIN_MEM_ADDR_BITS];
+    assign MAIN_MEM_raddrb = INST1[`INDEX_MAIN_READB +: `ALU_MAIN_MEM_ADDR_BITS];
+    assign MAIN_MEM_we = INST2[`INDEX_MAIN_WE];
+    assign Main_MEM_MUX = INST2[`INDEX_MAIN_WRITE_MUX +: `INST_MAIN_MEM_MUX_BIT];
+
+    ram2r1w_tdpram #( .DAT_BITS(DAT_BITS), .MEM_SIZE(`ALU_MAIN_MEM_SIZE), .ADDR_BITS(`ALU_MAIN_MEM_ADDR_BITS),.READ_LAT(1),.INIT_FILE("RAMINIT_ALU_MAIN_MEM.mem") ) 
+                    MAIN_MEM( .clk(clk),.rst(rst),.douta(MAIN_MEM_douta),.doutb(MAIN_MEM_doutb),.raddra(MAIN_MEM_raddra),.raddrb(MAIN_MEM_raddrb),.din(MAIN_MEM_din),.waddr(MAIN_MEM_waddr),.we(MAIN_MEM_we));
+
+    // Read out
+    reg [DAT_BITS-1:0] ALU_dout_REG;
+    assign ALU_dout = ALU_dout_REG;
+    always @ (posedge clk) begin
+        if (rst) begin
+            ALU_dout_REG <= 'b0;
+        end else begin
+            ALU_dout_REG <= MAIN_MEM_doutb;
+        end
+    end
