@@ -34,14 +34,17 @@ class memoryData:
 def setMUXDict(MMnum, MASnum):
     mux_dict = {}
     for i in range(MMnum):
-        mux_dict["MM{}_MEM".format(i)] = i*3
-        mux_dict["MM{}_SC".format(i)] = i*3 + 1
-        mux_dict["MM{}_REG".format(i)] = i*3 + 2
+        mux_dict["MM{}_MEMA".format(i)] = i*4
+        mux_dict["MM{}_MEMB".format(i)] = i*4 + 1
+        mux_dict["MM{}_SC".format(i)] = i*4 + 2
+        mux_dict["MM{}_REG".format(i)] = i*4 + 3
     for i in range(MASnum):
-        mux_dict["MAS{}_MEM".format(i)] = i*3 + MMnum*3
-        mux_dict["MAS{}_SC".format(i)] = i*3 + 1 + MMnum*3
-        mux_dict["MAS{}_REG".format(i)] = i*3 + 2 + MMnum*3
-    mux_dict["MAIN_MEM"] = MASnum*3 + MMnum*3
+        mux_dict["MAS{}_MEMA".format(i)] = i*4 + MMnum*4
+        mux_dict["MAS{}_MEMB".format(i)] = i*4 + 1 + MMnum*4
+        mux_dict["MAS{}_SC".format(i)] = i*4 + 2 + MMnum*4
+        mux_dict["MAS{}_REG".format(i)] = i*4 + 3 + MMnum*4
+    mux_dict["MAIN_MEMA"] = MASnum*4 + MMnum*4
+    mux_dict["MAIN_MEMB"] = MASnum*4 + MMnum*4 + 1
     return mux_dict
 
 class schedulingData:
@@ -184,7 +187,7 @@ class schedulingData:
                     ram_type="MAIN",
                     raddr=self.const_addr_list[operand_name],
                     mask=self.is_ladder)
-                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=self.mux_dict["MAIN_MEM"])
+                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=(self.mux_dict["MAIN_MEMA"] if i == 0 else self.mux_dict["MAIN_MEMB"]))
                 continue
             operand_data = self.solution_data_list[operand_name]
             if time > operand_data.end+1:
@@ -193,7 +196,7 @@ class schedulingData:
                 raddr = self.mem_data_list[operand_name].addr
                 # print(time, value_name, operand_name, ram_addr)
                 self.inst_list[time].set_mem_read(operand_index=i, ram_type=ram_type, raddr=raddr, mask=self.is_ladder)
-                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=self.mux_dict["{}_MEM".format(ram_type)])
+                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=(self.mux_dict["{}_MEMA".format(ram_type)] if i == 0 else self.mux_dict["{}_MEMB".format(ram_type)]))
                 continue
             pre_operator = operand_data.operator
             # print(time, value_name, operand_name, operand_operator)
@@ -257,7 +260,8 @@ if __name__ == "__main__":
     MASnum = int(args.addNum)
     MASstage = int(args.addStage)
 
-    target_dir = "./RTL_result/stage{}MM{}_stage{}MAS{}".format(MULstage, MMnum, MASstage, MASnum)
+    config = "stage{ms}MM{mn}_stage{as_}MAS{an}".format(mn=MMnum, ms=MULstage, an=MASnum, as_=MASstage)
+    target_dir = "./RTL_result/{}".format(config)
     os.makedirs(target_dir, exist_ok=True)
 
     alu_ram_index = ALUInstIndex(MMnum, MASnum)
@@ -266,7 +270,7 @@ if __name__ == "__main__":
 
     def write_instructions(algo_name: str):
         output_file_path = "{}/RAMINIT_Inst_{}.mem".format(target_dir, algo_name)
-        result_file_path = "./scheduling_result/{}_mul{}_{}_add{}_{}/result.txt".format(algo_name, MMnum, MULstage, MASnum, MASstage)
+        result_file_path = "./scheduling_result/{}/{}/result.txt".format(config, algo_name)
         # read scheduling result file
         namespace = {}
         exec(open(result_file_path, 'r', encoding="utf-8").read(), globals(), namespace)

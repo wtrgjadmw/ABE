@@ -86,11 +86,11 @@ class ALUInstIndex:
     def __init__(self, MMnum:int, MASnum:int):
         self.MMnum = MMnum
         self.MASnum = MASnum
-        self.MM_MEM_ADDR_BITS = 8
-        self.MAS_MEM_ADDR_BITS = 7
-        self.MAIN_MEM_ADDR_BITS = 7
+        self.MM_MEM_ADDR_BITS = 7
+        self.MAS_MEM_ADDR_BITS = 6
+        self.MAIN_MEM_ADDR_BITS = 8
 
-        self.INST_CAL_MUX_BIT = (MMnum*3 + MASnum*3).bit_length()
+        self.INST_CAL_MUX_BIT = (MMnum*4 + MASnum*4).bit_length()
         self.INST_ADDR_MASK_BIT = 1
         self.INST_MM_MAS_VAL_BIT = 1
         self.INST_MAS_ISSUB_BIT = 1
