@@ -92,17 +92,17 @@ def make_mem_task_definition(
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
                     for j in range(MMnum):
-                        f_write.write("\tS += ({0}*MM[{3}])-1 < {1}_mem{2}*MM_MEM[{4}]\n".format(operand, value, i, j, j*2+i))
+                        f_write.write("\tS += ({0}*MM[{3}])-1 < {1}_mem{2}*MM_MEM[{3}]\n".format(operand, value, i, j))
                 else:
-                    f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                    f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
             elif opcode == "ADD" or opcode == "SUB":
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
                     for j in range(MASnum):
-                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, value, i, j, j*2+i))
+                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{3}]\n".format(operand, value, i, j))
                 else:
-                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
         f_write.write("\tS += {1} <= {0}\n\n".format(value, mem_value_name))
         mem_table[mem_value_name] = operand
@@ -192,10 +192,10 @@ def make_pyschedule(
 
     # 1write-2read RAM
     f_write.write(
-        "\tMM_MEM = S.Resources('MM_MEM', num={0})\n".format(MMnum*2)
+        "\tMM_MEM = S.Resources('MM_MEM', num={0}, size=2)\n".format(MMnum)
     )
     f_write.write(
-        "\tMAS_MEM = S.Resources('MAS_MEM', num={0})\n".format(MASnum*2)
+        "\tMAS_MEM = S.Resources('MAS_MEM', num={0}, size=2)\n".format(MASnum)
     )
 
     # 2write-2read RAM

@@ -10,8 +10,8 @@ def solve():
 	MM_in = S.Resources('MM_in', num=1)
 	INV = S.Resource('INV')
 	MAS = S.Resources('MAS', num=4, size=1, periods=range(1, horizon))
-	MM_MEM = S.Resources('MM_MEM', num=1, size=2)
-	MAS_MEM = S.Resources('MAS_MEM', num=4, size=2)
+	MM_MEM = S.Resources('MM_MEM', num=2)
+	MAS_MEM = S.Resources('MAS_MEM', num=8)
 	MAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)
 	MAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)
 
