@@ -77,7 +77,7 @@ def make_mem_task_definition(
         mem_value_name = "{0}_mem{1}".format(value, i)
         if operand in input_value:
             f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
-            f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
+            f_write.write("\t{0} += MAIN_MEM_r\n".format(mem_value_name))
         else:
             prev_formula = find_prev_formula(formulas, operand)
             opcode = prev_formula[1]
@@ -200,7 +200,7 @@ def make_pyschedule(
 
     # 2write-2read RAM
     f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)\n")
-    f_write.write("\tMAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)\n")
+    f_write.write("\tMAIN_MEM_r = S.Resource('MAIN_MEM_r', size=2)\n")
 
     multi_resources = ["MM", "MM_in", "MAS", "MM_MEM", "MAS_MEM"]
     single_resources = ["INV", "MAIN_MEM_w", "MAIN_MEM_r"]
