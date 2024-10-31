@@ -1,4 +1,5 @@
 import hashlib
+from io import TextIOWrapper
 
 ####### operations
 def SHR(x, n):
@@ -41,31 +42,31 @@ K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x9
 
 # H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
 
+
 ####### algorithm
 
 # input: a message of any length less than 2^64 bits
-def padding(msg: bytes):
-    msg_len = len(msg)
-    counter = 1
-    while msg_len * 8 >= 256 ** counter:
-        counter += 1
-    if (msg_len % 64 < 56):
-        zero_num = 64 - (msg_len % 64) - 1 - counter
+def padding(msg: int, msg_len_bytes: int):
+    msg_len = msg_len_bytes*8
+    if msg_len % 4:
+        msg_len += 4 - (msg_len % 4)
+    if (msg_len % 512 < 448):
+        shift_num = 512 - (msg_len % 512)
+        M = (msg << shift_num) + (1 << (shift_num-1)) + msg_len
     else:
-        zero_num = 128 - (msg_len % 64) - 1 - counter
-    M = msg + (0x80).to_bytes(1, byteorder="big") + ((0).to_bytes(zero_num, byteorder="big")) + (msg_len*8).to_bytes(counter, 'big')
-    print("%dbits: %s" % (len(M)*8, M.hex()))
-    return M
+        shift_num = 1024 - (msg_len % 512)
+        M = (msg << shift_num) + (1 << (shift_num-1)) + msg_len
+    print("%dbits: %x" % (M.bit_length(), M))
+    return M, M.bit_length()
 
-def hash(M_bytes: bytes):
-    M = int.from_bytes(M_bytes, 'big')
-    M_len = len(M_bytes) * 8
+def hash(M: int, M_len: int):
     N = (M_len // 512) + 1 if M_len % 512 else M_len // 512
     print("%d block" % N)
     H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
     for i in range(N):
         W = [0] * 64
         Mi = (M >> (512 * (N - i - 1))) & ((1 << 512) - 1)
+        print("%x" % Mi)
         for j in range(64):
             if (j < 16):
                 W[j] = (Mi >> (32 * (15 - j))) & ((1 << 32) - 1)
@@ -96,27 +97,32 @@ def hash(M_bytes: bytes):
         res = (res << 32) | H[i]
     return res
 
-def sha256(msg: bytes) -> bytes: 
-    pad_msg = padding(msg)
-    hashed_msg = hash(pad_msg)
+def sha256_byte(msg: bytes, msg_len: int) -> bytes: 
+    msg_as_int = int.from_bytes(msg, 'big')
+    pad_msg, pad_msg_len = padding(msg_as_int, msg_len)
+    hashed_msg = hash(pad_msg, pad_msg_len)
     return hashed_msg.to_bytes(32, 'big')  
 
-def lib_sha256(msg: bytes):
-    H = hashlib.sha256()    #SHA256 used as hash function
-    H.update(msg)
-    #print("H.hex()", H.hexdigest())
-    return H.digest()
+def sha256_bytetest(f: TextIOWrapper):
+    for line in f:
+        if line[0:3] == "Len":
+            Len = int(line[6:(len(line) - 1)]) // 8
+            print("Len: ", Len)
+        elif line[0:3] == "Msg":
+            Msg = int(line[6:(len(line) - 1)], 16)
+            Msg_bytes = Msg.to_bytes(Len, 'big')
+            res = sha256_byte(Msg_bytes, Len)
+            lib_res = hashlib.sha256(Msg_bytes).digest()
+            assert lib_res == res, ("\nlibrary result: {}\nmy sha256     : {}").format(lib_res.hex(), res.hex())
+        elif line[0:2] == "MD":
+            MD = int(line[5:(len(line) - 1)], 16)
+            MD_bytes = MD.to_bytes(32, 'big')
+            assert MD_bytes == res, ("\nMD: {}\nmy sha256: {}").format(MD, res.hex())
+
 
 if __name__ == "__main__":
-
-    Len = 64
-    Msg = 0x5738c929c4f4ccb6
-    MD = 0x963bb88f27f512777aab6c8b1a02c70ec0ad651d428f870036e1917120fb48bf
+    f = open("shabytetestvectors/SHA256ShortMsg.rsp", "r")
+    sha256_bytetest(f)
+    f = open("shabytetestvectors/SHA256LongMsg.rsp", "r")
+    sha256_bytetest(f)
     
-    Msg_bytes = Msg.to_bytes(Len, 'big')
-    MD_bytes = MD.to_bytes(32, 'big')
-
-    res = sha256(Msg_bytes)
-    res = int.from_bytes(res, 'big')
-    
-    assert res == MD, "Failed...\nmy_ans = %x\nMD     = %s" % (res, MD)

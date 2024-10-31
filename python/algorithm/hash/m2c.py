@@ -1,4 +1,4 @@
-from python.algorithm.constants import *
+from constants import *
 from h2f import hash_to_field
 
 # map_to_curve(u)
@@ -9,7 +9,9 @@ from h2f import hash_to_field
 
 def SSWU_before_isogeny(t_: int) -> pointFp:
     if t_ == 0 or t_ == 1 or t_ == -1:
-        raise Exception("value t is %d" % t)
+        raise Exception("value t is %d" % t_)
+    print("p: ", 0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB)
+    print("t: ", t_)
     t = Fp(t_)
 
     t2 = t * t
@@ -21,6 +23,7 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     N_b = D_a_ + one
     N = B_ * N_b
     if D == zero:
+        print("D == zero")
         D = xi * A_
 
     D2 = D * D
@@ -36,7 +39,7 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     UV = U * V
     V2 = V * V
     UV3 = UV * V2
-    UV3_exp = UV3 ** ((UV3.p - 3) // 4)
+    UV3_exp = UV3 ** ((p - 3) // 4)
     alpha = UV3_exp * UV
 
     alphaD = alpha * D

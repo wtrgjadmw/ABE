@@ -1,5 +1,11 @@
-import math
-from sha256 import sha256
+from sha256 import sha256, lib_sha256
+
+def ceil(numerator, denominator):
+    if numerator % denominator == 0:
+        return numerator // denominator
+    else:
+        return numerator // denominator + 1
+
 # expand_message_xmd(msg, DST, len_in_bytes)
 # Parameters:
 # - H, a hash function (see requirements above).
@@ -36,7 +42,7 @@ def I2OSP(x: int, xLen: int) -> bytes:
     return x.to_bytes(xLen, 'big')
 
 def OS2IP(X: bytes) -> int:
-    return int.from_bytes(X, 'big')
+    return int(X.hex(), 16)
     
 def strxor(s1: bytes, s2: bytes):    
     # returns the bitwise XOR of the two strings
@@ -44,19 +50,38 @@ def strxor(s1: bytes, s2: bytes):
     return bytes(a ^ b for a, b in zip(s1, s2))
 
 def expand_message(msg: bytes, dst: bytes, len_in_bytes: int) -> bytes:
-    ell =  math.ceil(len_in_bytes / b_in_bytes)
+    ell =  ceil(len_in_bytes, b_in_bytes) # bls12-381: 4 
+    print(dst)
+    print("len(DST)", len(dst))
     if ell > 255 or len_in_bytes > 65535 or len(dst) > 255:
         raise Exception("The length of the requested output in bytes is greater than the lesser of (255 * b_in_bytes) or 2^16-1")
     dst_prime = dst + I2OSP(len(dst), 1)
+    print("DST_prime", dst_prime.hex())
     Z_pad = I2OSP(0, s_in_bytes)
+    print("Z_pad", Z_pad.hex())
     l_i_b_str = I2OSP(len_in_bytes, 2)
+    print("l_i_b_str", l_i_b_str.hex())
     msg_prime = Z_pad + msg + l_i_b_str + I2OSP(0, 1) + dst_prime
+    print("b0_input", msg_prime.hex())
+    print("b0_input_len", len(msg_prime))
     b_0 = sha256(msg_prime)
-    b_1 = sha256(b_0 + I2OSP(1, 1) + dst_prime)
+    b_0_lib = lib_sha256(msg_prime)
+    print("b0 == b0_lib", b_0 == b_0_lib) 
+    
+    b_1_input = b_0 + I2OSP(1, 1) + dst_prime
+    print("b1_input", b_1_input.hex())
+    b_1 = sha256(b_1_input)
+    b_1_lib = lib_sha256(b_1_input)
+    print("b1 == b1_lib", b_1 == b_1_lib) 
+    
     uniform_bytes = b_1
     b_i_1 = b_1
-    for i in (2, ell+1):
-        b_i = sha256(strxor(b_0, b_i_1) + I2OSP(i, 1) + dst_prime)
+    for i in range(2, ell+1):
+        b_i_input = strxor(b_0, b_i_1) + I2OSP(i, 1) + dst_prime
+        print("b_i_input", b_i_input.hex())
+        b_i = sha256(b_i_input)
+        b_i_lib = lib_sha256(b_i_input)
+        print("b{i} == b{i}_lib".format(i=i), b_i == b_i_lib) 
         uniform_bytes = uniform_bytes + b_i
         b_i_1 = b_i
     return uniform_bytes[:len_in_bytes]
@@ -99,14 +124,15 @@ HASH_ID = "{}:{}".format(EXP_TAG, HASH_NAME)    # a human-readable representatio
 MAP_ID = "SSWU"         # a human-readable representation of the map_to_curve function. Simplified SWU
 ENC_VAR = "RO"          # a string indicating the encoding type and other information. hash_to_curve
 suiteID = "{}_{}_{}_{}_".format(CURVE_ID, HASH_ID, MAP_ID, ENC_VAR)
-DST = "QUUX-V{}-CS{}-{}".format(xx, yy, suiteID)
-p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabffeb153fffb9feffffaaab 
+DST = "QUUX-V{}-CS{}-with-{}".format(xx, yy, suiteID)
+p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab  #character of finite field
 m = 1   # the extension degree of field that curve is defined
 L = 64
 
 def hash_to_field(msg: bytes, count: int) -> list[list[int]]:
-    len_in_bytes = count * m * L
+    len_in_bytes = count * m * L    # bls12-381: 128
     uniform_bytes = expand_message(msg, DST.encode('utf-8'), len_in_bytes)
+    # print("uniform_bytes: ", uniform_bytes.hex())
     u = [[0] * m for i in range(count)]
     for i in range(count):
         e = [0] * m
@@ -118,4 +144,5 @@ def hash_to_field(msg: bytes, count: int) -> list[list[int]]:
     return u
 
 if __name__ == "__main__":
-    print(hash_to_field("abc".encode('utf-8'), 2))
+    field_hased_list = hash_to_field("abc".encode('utf-8'), 2)
+    print("u0: {:x}\nu1: {:x}".format(field_hased_list[0][0], field_hased_list[1][0]))
