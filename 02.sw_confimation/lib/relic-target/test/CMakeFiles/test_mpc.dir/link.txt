@@ -1,0 +1,1 @@
+/usr/bin/cc -m64 -Wall   -pipe -std=c99 -O2 -funroll-loops -fomit-frame-pointer  -L/usr1/anawin/Desktop/ABE_software/00.RELIC/test/relic-main/src/low/easy/  -rdynamic CMakeFiles/test_mpc.dir/test_mpc.c.o  -o ../bin/test_mpc  ../lib/librelic_s.a -lrt 

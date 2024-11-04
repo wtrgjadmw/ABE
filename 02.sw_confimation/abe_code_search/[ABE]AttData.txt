@@ -1,0 +1,6 @@
+alice,n_att=5,att=[Student,Master,Age:22,UTokyo,Law]
+bob,n_att=4,att=[Professor,Age:50,UTokyo,Engineering]
+charlie,n_att=5,att=[Student,Doctor,Age:26,Tokodai,Engineering]
+dylan,n_att=5,att=[Student,Bachelor,Age:18,UTokyo,Engineering]
+ethan,n_att=5,att=[Student,Master,Age:24,UTokyo,Engineering]
+anawin,n_att=7,att=[A,BB,C,D,EE,F:10,G]
