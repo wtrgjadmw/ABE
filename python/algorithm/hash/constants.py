@@ -1,6 +1,10 @@
 import random
 from util import bits_of, is_qr
 
+# return a if x == y, b otherwise.
+def CMOV(a,b,x,y):
+    return a if x == y else b
+
 # BLS12-381
 
 
@@ -98,6 +102,7 @@ B_ = Fp(
 
 
 xi = Fp(-1)
+# sqrt_negxi3 = Fp(0x9cedb0dc8a24ad9d8ac46d8813632c1e112441822664e0d3538000646753e4f05170c1d660d85b82e364e395a640be4)
 zero = Fp(0)
 one = Fp(1)
 k_ = [
@@ -284,11 +289,12 @@ class pointFp:
 
     def check_on_curve(self):
         if self.coord_type == "projective":
-            X_ = self.X / self.Z
-            Y_ = self.Y / self.Z
-            gx = X_**3 + self.a * X_ + self.b
-            y2 = Y_**2
-            assert gx.value == y2.value, "\ng(x) = %x\ny    = %x" % (gx.value, y2.value)
+            X3 = self.X ** 3
+            aXZ2 = self.a * self.X * (self.Z ** 2)
+            bZ3 = self.b * (self.Z ** 3)
+            gx = X3 + aXZ2 + bZ3
+            Y2Z = (self.Y ** 2) * self.Z
+            assert gx.value == Y2Z.value, "\ng(x) = %x\ny    = %x\n-y   = %x" % (gx.value, Y2Z.value, (zero-Y2Z).value)
         else:
             raise Exception("not implemented")
 
