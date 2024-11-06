@@ -52,14 +52,11 @@ class ALUInstruction:
     def index2alphabet(self, index: int):
         return chr(65+index)
 
-    def set_mem_read(self, operand_index: int, ram_type, raddr: int, mask=False):
-        suffix = self.index2alphabet(operand_index)
+    def set_mem_read(self, ram_type: str, read_port: str, raddr: int, mask=False):
+        self.inst_dict["{}_READ{}".format(ram_type, read_port)] = raddr
         if ram_type == "MAIN":
             is_masked_addr = mask and 0 <= raddr <= 3
-            self.inst_dict["MAIN_READ{}".format(suffix)] = raddr
-            self.inst_dict["MAIN_READ_MASK{}".format(suffix)] = 1 if is_masked_addr else 0
-        else:
-            self.inst_dict["{}_READ{}".format(ram_type, suffix)] = raddr
+            self.inst_dict["MAIN_READ_MASK{}".format(read_port)] = 1 if is_masked_addr else 0
 
     def set_operator_init(self, operator, operation, operand_index, mux):
         suffix = self.index2alphabet(operand_index)
@@ -69,16 +66,13 @@ class ALUInstruction:
             self.inst_dict["{}_ISSUB".format(operator)] = 1 if "SUB" == operation else 0
 
     def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
+        self.inst_dict["{}_WRITE".format(ram_type)] = waddr
+        self.inst_dict["{}_WE".format(ram_type)] = 1
         if ram_type == "MAIN":
-            self.inst_dict["MAIN_WRITE"] = waddr
             is_masked_addr = mask and 0 <= waddr <= 3
             self.inst_dict["MAIN_WRITE_MASK"] = 1 if is_masked_addr else 0
-            self.inst_dict["MAIN_WE"] = 1
             operator_index = int(output_operator[-1])
             self.inst_dict["MAIN_WRITE_MUX"] = operator_index if "MM" in output_operator else self.MMnum + operator_index
-        else:
-            self.inst_dict["{}_WRITE".format(ram_type)] = waddr
-            self.inst_dict["{}_WE".format(ram_type)] = 1
 
 
 

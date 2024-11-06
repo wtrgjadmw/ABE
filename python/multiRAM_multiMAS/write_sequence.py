@@ -20,12 +20,11 @@ def value2num(value):
 # cが10clk目で出力 -> アドレス2に保存 -> 15clk目でオペランドとして最後に呼び出される場合，
 # memoryData = {start: RAMに入るのは11clk目, end: 15, addr: x}
 class memoryData:
-    def __init__(self, start, end, ram_type, addr=-1, is_output=False) -> None:
+    def __init__(self, start, end, ram_type, addr=-1) -> None:
         self.start = start
         self.end = end
         self.ram_type = ram_type
         self.addr = addr
-        self.is_output = is_output
 
     def set_addr(self, addr):
         self.addr = addr
@@ -81,16 +80,11 @@ class schedulingData:
 
         self.inst_list: list[ALUInstruction] = []
         self.mem_addr_list: dict[str, list[int]] = {}
+        self.ram_num_list = {}
         for i in range(MMnum):
             self.mem_addr_list["MM{num}".format(num=i)] = []
         for i in range(MASnum):
             self.mem_addr_list["MAS{num}".format(num=i)] = []
-
-        # self.default_mem_is_second = {"input": False, "output": False}
-        # for i in range(MMnum):
-        #     self.default_mem_is_second["MUL{num}".format(num=i)] = False
-        # for i in range(MASnum):
-        #     self.default_mem_is_second["MAS{num}".format(num=i)] = False
 
     # c = a + bなら["c", "ADD", "a", "b"]
     def find_formula(self, valuable):
@@ -135,16 +129,25 @@ class schedulingData:
         self.inst_list = [ALUInstruction(self.MMnum, self.MASnum) for i in range(self.seq_finish_time)]
 
     def set_mem_data(self):
+        mem_is_used = []
+        prev_start_time = -1
         for sol in self.scheduling_solution:
             mem_value_name = sol[0]
             start_time = int(sol[2])
+            if prev_start_time != start_time:
+                mem_is_used = []
+            prev_start_time = start_time
             end_time = int(sol[3])
             if "_mem" in mem_value_name:
                 value_name = self.mem_table[mem_value_name]
                 if value_name in self.input:
+                    self.ram_num_list[mem_value_name] = ("A" if "MAIN" in mem_is_used else "B")
+                    mem_is_used.append("MAIN")
                     continue
                 operator = self.solution_data_list[value_name].operator
                 if self.solution_data_list[value_name].end + 1 < start_time:
+                    self.ram_num_list[mem_value_name] = ("A" if operator in mem_is_used else "B")
+                    mem_is_used.append(operator)
                     self.mem_data_list[value_name] = memoryData(start=self.solution_data_list[value_name].end, end=start_time, ram_type=operator)
             if "_w" in mem_value_name:
                 for output_value in self.output:
@@ -159,9 +162,6 @@ class schedulingData:
             start_time = memory_data.start
             end_time = memory_data.end
             ram_type = memory_data.ram_type
-            if memory_data.is_output:
-                # self.inst_list[start_time].set_mem_write(operator=operator, waddr=memory_data.addr, mask=self.is_ladder)
-                continue
             is_added = False
             for i in range(len(self.mem_addr_list[ram_type])):
                 if self.mem_addr_list[ram_type][i] <= start_time:
@@ -182,21 +182,23 @@ class schedulingData:
             operand_name = data.opr1 if i == 0 else data.opr2
             if operand_name in self.input:
                 # print(value_name, time, operand_name, self.const_addr_list[operand_name])
+                read_port = self.ram_num_list["{}_mem{}".format(value_name, i)]
                 self.inst_list[time].set_mem_read(
-                    operand_index=i,
                     ram_type="MAIN",
+                    read_port = read_port,
                     raddr=self.const_addr_list[operand_name],
                     mask=self.is_ladder)
-                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=(self.mux_dict["MAIN_MEMA"] if i == 0 else self.mux_dict["MAIN_MEMB"]))
+                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=self.mux_dict["MAIN_MEM{}".format(read_port)])
                 continue
             operand_data = self.solution_data_list[operand_name]
             if time > operand_data.end+1:
                 # print(value_name, operand_name)
                 ram_type = self.mem_data_list[operand_name].ram_type
                 raddr = self.mem_data_list[operand_name].addr
+                read_port = self.ram_num_list["{}_mem{}".format(value_name, i)]
                 # print(time, value_name, operand_name, ram_addr)
-                self.inst_list[time].set_mem_read(operand_index=i, ram_type=ram_type, raddr=raddr, mask=self.is_ladder)
-                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=(self.mux_dict["{}_MEMA".format(ram_type)] if i == 0 else self.mux_dict["{}_MEMB".format(ram_type)]))
+                self.inst_list[time].set_mem_read(ram_type=ram_type, read_port = read_port,raddr=raddr, mask=self.is_ladder)
+                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=self.mux_dict["{}_MEM{}".format(ram_type, read_port)])
                 continue
             pre_operator = operand_data.operator
             # print(time, value_name, operand_name, operand_operator)

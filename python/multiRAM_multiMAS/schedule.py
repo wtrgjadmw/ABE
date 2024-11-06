@@ -413,10 +413,10 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    for algo_name in ["ladderMul", "yrecover"]:
-        exec_split_scheduling(algo_name)
-    # for algo_name in ["CONJ", "FROB", "MUL", "PADD", "PDBL", "SPARSE", "SQR", "SQR012345", "INV"]:
+    # for algo_name in ["ladderMul", "yrecover"]:
     #     exec_split_scheduling(algo_name)
+    for algo_name in ["CONJ", "FROB", "MUL", "PADD", "PDBL", "SPARSE", "SQR", "SQR012345", "INV"]:
+        exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):
         if filename.endswith(".log") and "clone" in filename:
