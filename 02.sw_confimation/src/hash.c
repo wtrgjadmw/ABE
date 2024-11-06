@@ -50,32 +50,30 @@ int main() {
 		return 1;
 	}
 
-	// uint8_t in_str[] = "Hello, World!";
-	// uint8_t out_str[2*ATT_HASH_LEN];
+	// uint8_t in_str[] = "abc";
+	// uint8_t out_str[ATT_HASH_LEN];
 
-	// sha256_hash(out_str, in_str);
+	// md_map_sh256(out_str, in_str, strlen((char *)in_str));
 
 	// printf("SHA-256 Hash: ");
     // print_hex(out_str, sizeof(out_str));
 
 	// g1_map(g1_temp, out_str, strlen((char*)out_str));	/* Hash(att) */
 
-	g1_t g1_temp;
+	// g1_t g1_temp;
 	uint8_t msg[] = "abc";
-	printf("msg: %s\n",msg);
-	uint8_t dst[] = "QUUX-V01-CS02-BLS12381G1_XMD:SHA-256_SSWU_RO_";
-	printf("dst: %s\n",dst);
-	ep_map_dst(g1_temp, msg, sizeof(msg), dst, sizeof(dst));
-	printf("result point:\n");
-	g1_print(g1_temp);
+	uint8_t dst[] = "QUUX-V01-CS02-with-BLS12381G1_XMD:SHA-256_SSWU_RO_";
+	// ep_map_dst(g1_temp, msg, sizeof(msg), dst, sizeof(dst));
+	// printf("result point:\n");
+	// g1_print(g1_temp);
 
-	printf("\n\n");
+	// printf("\n\n");
 
 	g1_t g1_temp2;
 	// ep_map_dst --------------
 	const int len_per_elm = (FP_PRIME + ep_param_level() + 7) / 8;
 	uint8_t *pseudo_random_bytes = RLC_ALLOCA(uint8_t, 2 * len_per_elm);
-	md_xmd(pseudo_random_bytes, 2 * len_per_elm, msg, sizeof(msg), dst, sizeof(dst));
+	md_xmd(pseudo_random_bytes, 2 * len_per_elm, msg, sizeof(msg)-1, dst, sizeof(dst)-1);
 	printf("len_per_elm: %d\n",len_per_elm);
 	printf("pseudo_random_bytes (128 byte = 1024 bit):\n");
 	print_hex(pseudo_random_bytes, 2 * len_per_elm);
@@ -99,14 +97,10 @@ int main() {
 	printf("prime field (2):\n");
 	fp_print(t);
 
-	const char *a_str, *b_str, *xn_str, *xd_str, *yn_str, *yd_str, *u_str;
-
-	ep_param_set_ctmap(a_str, b_str, xn_str, xd_str, yn_str, yd_str, u_str);
-	printf(a_str);
-	printf(b_str);
-	printf(u_str);
-
 	ep_map_from_field(g1_temp2, pseudo_random_bytes, 2 * len_per_elm);
+	const int abNeq0 = (ep_curve_opt_a() != RLC_ZERO) &&
+				(ep_curve_opt_b() != RLC_ZERO);
+	printf("%d", ep_curve_is_ctmap() || abNeq0);
 	RLC_FREE(pseudo_random_bytes);
 	// ep_map_dst --------------
 	printf("result point:\n");
