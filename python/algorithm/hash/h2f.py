@@ -51,37 +51,36 @@ def strxor(s1: bytes, s2: bytes):
 
 def expand_message(msg: bytes, dst: bytes, len_in_bytes: int) -> bytes:
     ell =  ceil(len_in_bytes, b_in_bytes) # bls12-381: 4 
-    print(dst)
-    print("len(DST)", len(dst))
+    print("DST (%dbyte): %s" % (len(dst), dst))
     if ell > 255 or len_in_bytes > 65535 or len(dst) > 255:
         raise Exception("The length of the requested output in bytes is greater than the lesser of (255 * b_in_bytes) or 2^16-1")
     dst_prime = dst + I2OSP(len(dst), 1)
-    print("DST_prime", dst_prime.hex())
+    # print("DST_prime", dst_prime.hex())
     Z_pad = I2OSP(0, s_in_bytes)
-    print("Z_pad", Z_pad.hex())
+    # print("Z_pad", Z_pad.hex())
     l_i_b_str = I2OSP(len_in_bytes, 2)
-    print("l_i_b_str", l_i_b_str.hex())
+    # print("l_i_b_str", l_i_b_str.hex())
     msg_prime = Z_pad + msg + l_i_b_str + I2OSP(0, 1) + dst_prime
-    print("b0_input", msg_prime.hex())
-    print("b0_input_len", len(msg_prime))
+    # print("b0_input", msg_prime.hex())
+    # print("b0_input_len", len(msg_prime))
     b_0 = sha256(msg_prime)
     b_0_lib = lib_sha256(msg_prime)
-    print("b0 == b0_lib", b_0 == b_0_lib) 
+    # print("b0 == b0_lib", b_0 == b_0_lib) 
     
     b_1_input = b_0 + I2OSP(1, 1) + dst_prime
-    print("b1_input", b_1_input.hex())
+    # print("b1_input", b_1_input.hex())
     b_1 = sha256(b_1_input)
     b_1_lib = lib_sha256(b_1_input)
-    print("b1 == b1_lib", b_1 == b_1_lib) 
+    # print("b1 == b1_lib", b_1 == b_1_lib) 
     
     uniform_bytes = b_1
     b_i_1 = b_1
     for i in range(2, ell+1):
         b_i_input = strxor(b_0, b_i_1) + I2OSP(i, 1) + dst_prime
-        print("b_i_input", b_i_input.hex())
+        # print("b_i_input", b_i_input.hex())
         b_i = sha256(b_i_input)
         b_i_lib = lib_sha256(b_i_input)
-        print("b{i} == b{i}_lib".format(i=i), b_i == b_i_lib) 
+        # print("b{i} == b{i}_lib".format(i=i), b_i == b_i_lib) 
         uniform_bytes = uniform_bytes + b_i
         b_i_1 = b_i
     return uniform_bytes[:len_in_bytes]
@@ -132,7 +131,7 @@ L = 64
 def hash_to_field(msg: bytes, count: int) -> list[list[int]]:
     len_in_bytes = count * m * L    # bls12-381: 128
     uniform_bytes = expand_message(msg, DST.encode('utf-8'), len_in_bytes)
-    # print("uniform_bytes: ", uniform_bytes.hex())
+    # print("uniform_bytes ({:d}byte = {:d}bit): {:s}".format(len_in_bytes, len_in_bytes*8, uniform_bytes.hex()))
     u = [[0] * m for i in range(count)]
     for i in range(count):
         e = [0] * m
@@ -141,8 +140,13 @@ def hash_to_field(msg: bytes, count: int) -> list[list[int]]:
             tv = uniform_bytes[elm_offset: elm_offset+L]
             e[j] = OS2IP(tv) % p
         u[i] = e
+    print("u0: {:x}\nu1: {:x}".format(u[0][0], u[1][0]))
     return u
 
 if __name__ == "__main__":
+    # res = lib_sha256("abc".encode('utf-8'))
+    # print(len(res))
+    # res = int.from_bytes(res, 'big')
+    # print("%x" % res)
     field_hased_list = hash_to_field("abc".encode('utf-8'), 2)
     print("u0: {:x}\nu1: {:x}".format(field_hased_list[0][0], field_hased_list[1][0]))

@@ -112,5 +112,6 @@ if __name__ == "__main__":
     M.check_on_curve()
     MX = M.X / M.Z
     MY = M.Y / M.Z
+    print("result point: ")
     print("%x" % MX.value)
     print("%x" % MY.value)
