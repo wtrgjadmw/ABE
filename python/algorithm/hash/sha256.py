@@ -39,30 +39,33 @@ K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x9
     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]
 
-H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
+# H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
 
 ####### algorithm
 
 # input: a message of any length less than 2^64 bits
-def padding(msg: int):
-    msg_len = msg.bit_length()
-    msg_len += 4 - (msg_len % 4)
-    if (msg_len % 512 < 448):
-        shift_num = 512 - (msg_len % 512)
-        M = (msg << shift_num) + (1 << (shift_num-1)) + msg_len
+def padding(msg: bytes):
+    msg_len = len(msg)
+    counter = 1
+    while msg_len * 8 >= 256 ** counter:
+        counter += 1
+    if (msg_len % 64 < 56):
+        zero_num = 64 - (msg_len % 64) - 1 - counter
     else:
-        shift_num = 1024 - (msg_len % 512)
-        M = (msg << shift_num) + (1 << (shift_num-1)) + msg_len
-    print("%dbits: %x" % (M.bit_length(), M))
+        zero_num = 128 - (msg_len % 64) - 1 - counter
+    M = msg + (0x80).to_bytes(1, byteorder="big") + ((0).to_bytes(zero_num, byteorder="big")) + (msg_len*8).to_bytes(counter, 'big')
+    print("%dbits: %s" % (len(M)*8, M.hex()))
     return M
 
-def hash(M: int):
-    N = (M.bit_length() + (512 - (M.bit_length() % 512))) // 512
+def hash(M_bytes: bytes):
+    M = int.from_bytes(M_bytes, 'big')
+    M_len = len(M_bytes) * 8
+    N = (M_len // 512) + 1 if M_len % 512 else M_len // 512
     print("%d block" % N)
+    H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
     for i in range(N):
         W = [0] * 64
         Mi = (M >> (512 * (N - i - 1))) & ((1 << 512) - 1)
-        print("%x" % Mi)
         for j in range(64):
             if (j < 16):
                 W[j] = (Mi >> (32 * (15 - j))) & ((1 << 32) - 1)
@@ -94,16 +97,26 @@ def hash(M: int):
     return res
 
 def sha256(msg: bytes) -> bytes: 
-    msg_as_int = int.from_bytes(msg, 'big')
-    pad_msg = padding(msg_as_int)
+    pad_msg = padding(msg)
     hashed_msg = hash(pad_msg)
-    return hashed_msg.to_bytes(32, 'big')    
+    return hashed_msg.to_bytes(32, 'big')  
+
+def lib_sha256(msg: bytes):
+    H = hashlib.sha256()    #SHA256 used as hash function
+    H.update(msg)
+    #print("H.hex()", H.hexdigest())
+    return H.digest()
 
 if __name__ == "__main__":
-    Len = 1
-    Msg = 0x451101250ec6f26652249d59dc974b7361d571a8101cdfd36aba3b5854d3ae086b5fdd4597721b66e3c0dc5d8c606d9657d0e323283a5217d1f53f2f284f57b85c8a61ac8924711f895c5ed90ef17745ed2d728abd22a5f7a13479a462d71b56c19a74a40b655c58edfe0a188ad2cf46cbf30524f65d423c837dd1ff2bf462ac4198007345bb44dbb7b1c861298cdf61982a833afc728fae1eda2f87aa2c9480858bec
-    MD = 0x3c593aa539fdcdae516cdf2f15000f6634185c88f505b39775fb9ab137a10aa2
 
-    res = sha256(Msg)
+    Len = 64
+    Msg = 0x5738c929c4f4ccb6
+    MD = 0x963bb88f27f512777aab6c8b1a02c70ec0ad651d428f870036e1917120fb48bf
     
-    assert res == MD, "Failed...\nmy_ans = %x\MD     = %s" % (res, MD)
+    Msg_bytes = Msg.to_bytes(Len, 'big')
+    MD_bytes = MD.to_bytes(32, 'big')
+
+    res = sha256(Msg_bytes)
+    res = int.from_bytes(res, 'big')
+    
+    assert res == MD, "Failed...\nmy_ans = %x\nMD     = %s" % (res, MD)

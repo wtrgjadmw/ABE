@@ -81,14 +81,22 @@ h2 = (
     u**8 - 4 * (u**7) + 5 * (u**6) - 4 * (u**4) + 6 * (u**3) - 4 * (u**2) - 4 * u + 13
 ) // 9
 
+# BLS12-381 Fp curve
 a = Fp(0)
 b = Fp(4)
+
+# BLS12-381 11-isogeny curve 
+# reference: Wahby, R. S., & Boneh, D. (2019). Fast and 
+# simple constant-time hashing to the BLS12-381
+# elliptic curve. Cryptology ePrint Archive.
 A_ = Fp(
     0x144698A3B8E9433D693A02C96D4982B0EA985383EE66A8D8E8981AEFD881AC98936F8DA0E0F97F5CF428082D584C1D
 )
 B_ = Fp(
     0x12E2908D11688030018B12E8753EEE3B2016C1F0F24F4070A0B9C14FCEF35EF55A23215A316CEAA5D1CC48E98E172BE0
 )
+
+
 xi = Fp(-1)
 zero = Fp(0)
 one = Fp(1)

@@ -1,4 +1,4 @@
-from python.algorithm.constants import *
+from constants import *
 from h2f import hash_to_field
 
 # map_to_curve(u)
@@ -9,7 +9,7 @@ from h2f import hash_to_field
 
 def SSWU_before_isogeny(t_: int) -> pointFp:
     if t_ == 0 or t_ == 1 or t_ == -1:
-        raise Exception("value t is %d" % t)
+        raise Exception("value t is %d" % t_)
     t = Fp(t_)
 
     t2 = t * t
@@ -20,7 +20,8 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     D = zero - D_
     N_b = D_a_ + one
     N = B_ * N_b
-    if D == zero:
+    if D.value == zero.value:
+        print("D == zero")
         D = xi * A_
 
     D2 = D * D
@@ -36,14 +37,14 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     UV = U * V
     V2 = V * V
     UV3 = UV * V2
-    UV3_exp = UV3 ** ((UV3.p - 3) // 4)
+    UV3_exp = UV3 ** ((p - 3) // 4)
     alpha = UV3_exp * UV
 
     alphaD = alpha * D
 
     alpha2 = alpha * alpha
     alpha2V = alpha2 * V
-    if alpha2V == U:
+    if alpha2V.value == U.value:
         X = N
         Y = t.sign() * alphaD
         Z = D
@@ -109,3 +110,8 @@ if __name__ == "__main__":
     t_list = hash_to_field("abc".encode("utf-8"), 2)
     M = map_to_curve_BLS12381G1(t_list)
     M.check_on_curve()
+    MX = M.X / M.Z
+    MY = M.Y / M.Z
+    print("result point: ")
+    print("%x" % MX.value)
+    print("%x" % MY.value)
