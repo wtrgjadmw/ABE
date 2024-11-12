@@ -13,6 +13,9 @@ class Fp:
         self.p = 0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB
         self.value = value
 
+    def __eq__(self, other) -> bool:
+        return self.value == other.value
+
     def __add__(self, other):
         result = (self.value + other.value) % self.p
         return Fp(result)
@@ -182,6 +185,9 @@ class pointFp:
         self.b = coefficients[1]
         self.b3 = Fp(3) * self.b
 
+    def __eq__(self, other) -> bool:
+        return (self.X == other.X) & (self.Y == other.Y) & (self.Z == other.Z)
+
     # For projective coordinate
     # Reference:
     # Renes, Joost, Craig Costello, and Lejla Batina.
@@ -194,90 +200,155 @@ class pointFp:
         assert self.coord_type == "projective", (
             "the coordinate type is %s" % self.coord_type
         )
-
-        t0 = self.X * other.X
-        t1 = self.Y * other.Y
-        t2 = self.Z * other.Z
-        t3 = self.X + self.Y
-        t4 = other.X + other.Y
-        t3 = t3 * t4
-        t4 = t0 + t1
-        t3 = t3 - t4
-        t4 = self.X + self.Z
-        t5 = other.X + other.Z
-        t4 = t4 * t5
-        t5 = t0 + t2
-        t4 = t4 - t5
-        t5 = self.Y + self.Z
-        X2_new = other.Y + other.Z
-        t5 = t5 * X2_new
-        X2_new = t1 + t2
-        t5 = t5 - X2_new
-        Z2_new = self.a * t4
-        X2_new = self.b3 * t2
-        Z2_new = X2_new + Z2_new
-        X2_new = t1 - Z2_new
-        Z2_new = t1 + Z2_new
-        Y3 = X2_new * Z2_new
-        t1 = t0 + t0
-        t1 = t1 + t0
-        t2 = self.a * t2
-        t4 = self.b3 * t4
-        t1 = t1 + t2
-        t2 = t0 - t2
-        t2 = self.a * t2
-        t4 = t4 + t2
-        t0 = t1 * t4
-        Y3 = Y3 + t0
-        t0 = t5 * t4
-        X2_new = t3 * X2_new
-        X2_new = X2_new - t0
-        t0 = t3 * t1
-        Z2_new = t5 * Z2_new
-        Z2_new = Z2_new + t0
-        return pointFp(
-            coord_type="projective",
-            coordinate=[X2_new, Y3, Z2_new],
-            coefficients=[self.a, self.b],
-        )
+        if self.a.value == 0: # 12M + 2m_3b + 19a:
+            t0 = self.X * other.X
+            t1 = self.Y * other.Y
+            t2 = self.Z * other.Z
+            t3 = self.X + self.Y
+            t4 = other.X + other.Y
+            t3 = t3 * t4
+            t4 = t0 + t1
+            t3 = t3 - t4
+            t4 = self.Y + self.Z
+            t5 = other.Y + other.Z
+            t4 = t4 * t5
+            t5 = t1 + t2
+            t4 = t4 - t5
+            X2_new = self.X + self.Z
+            Y2_new = other.X + other.Z
+            X2_new = X2_new * Y2_new
+            Y2_new = t0 + t2
+            Y2_new = X2_new - Y2_new
+            X2_new = t0 + t0
+            t0 = t0 + X2_new
+            t2 = t2 * Fp(12)
+            Z2_new = t1 + t2
+            t1 = t1 - t2
+            Y2_new = Y2_new * Fp(12)
+            X2_new = t4 * Y2_new
+            t2 = t3 * t1
+            X2_new = t2 - X2_new
+            Y2_new = t0 * Y2_new
+            t1 = t1 * Z2_new
+            Y2_new = t1 + Y2_new
+            t0 = t0 * t3
+            Z2_new = Z2_new * t4
+            Z2_new = Z2_new + t0
+            return pointFp(
+                coord_type="projective",
+                coordinate=[X2_new, Y2_new, Z2_new],
+                coefficients=[self.a, self.b],
+            )
+        else: # 12M + 3m_a + 2m_3b + 23a
+            t0 = self.X * other.X
+            t1 = self.Y * other.Y
+            t2 = self.Z * other.Z
+            t3 = self.X + self.Y
+            t4 = other.X + other.Y
+            t3 = t3 * t4
+            t4 = t0 + t1
+            t3 = t3 - t4
+            t4 = self.X + self.Z
+            t5 = other.X + other.Z
+            t4 = t4 * t5
+            t5 = t0 + t2
+            t4 = t4 - t5
+            t5 = self.Y + self.Z
+            X2_new = other.Y + other.Z
+            t5 = t5 * X2_new
+            X2_new = t1 + t2
+            t5 = t5 - X2_new
+            Z2_new = self.a * t4
+            X2_new = self.b3 * t2
+            Z2_new = X2_new + Z2_new
+            X2_new = t1 - Z2_new
+            Z2_new = t1 + Z2_new
+            Y3 = X2_new * Z2_new
+            t1 = t0 + t0
+            t1 = t1 + t0
+            t2 = self.a * t2
+            t4 = self.b3 * t4
+            t1 = t1 + t2
+            t2 = t0 - t2
+            t2 = self.a * t2
+            t4 = t4 + t2
+            t0 = t1 * t4
+            Y3 = Y3 + t0
+            t0 = t5 * t4
+            X2_new = t3 * X2_new
+            X2_new = X2_new - t0
+            t0 = t3 * t1
+            Z2_new = t5 * Z2_new
+            Z2_new = Z2_new + t0
+            return pointFp(
+                coord_type="projective",
+                coordinate=[X2_new, Y3, Z2_new],
+                coefficients=[self.a, self.b],
+            )
 
     def double(self):
-        t0 = self.X * self.X
-        t1 = self.Y * self.Y
-        t2 = self.Z * self.Z
-        t3 = self.X * self.Y
-        t3 = t3 + t3
-        Z2_new = self.X * self.Z
-        Z2_new = Z2_new + Z2_new
-        X2_new = self.a * Z2_new
-        Y3 = self.b3 * t2
-        Y3 = X2_new + Y3
-        X2_new = t1 - Y3
-        Y3 = t1 + Y3
-        Y3 = X2_new * Y3
-        X2_new = t3 * X2_new
-        Z2_new = self.b3 * Z2_new
-        t2 = self.a * t2
-        t3 = t0 - t2
-        t3 = self.a * t3
-        t3 = t3 + Z2_new
-        Z2_new = t0 + t0
-        t0 = Z2_new + t0
-        t0 = t0 + t2
-        t0 = t0 * t3
-        Y3 = Y3 + t0
-        t2 = self.Y * self.Z
-        t2 = t2 + t2
-        t0 = t2 * t3
-        X2_new = X2_new - t0
-        Z2_new = t2 * t1
-        Z2_new = Z2_new + Z2_new
-        Z2_new = Z2_new + Z2_new
-        return pointFp(
-            coord_type="projective",
-            coordinate=[X2_new, Y3, Z2_new],
-            coefficients=[self.a, self.b],
-        )
+        if self.a.value == 0: # 6M + 2S + 1m_3b + 9a
+            t0 = self.Y * self.Y
+            t3 = self.X * self.Y
+            t1 = self.Z * self.Y
+            t2 = self.Z * self.Z
+            t2 = self.b3 * t2
+            rz = t0 + t0
+            rz = rz + rz
+            rz = rz + rz
+            rx = t2 * rz
+            ry = t0 + t2 
+            rz = t1 * rz
+            t1 = t2 + t2
+            t2 = t1 + t2
+            t0 = t0 - t2
+            ry = t0 * ry
+            ry = rx + ry
+            rx = t0 * t3
+            rx = rx + rx
+            return pointFp(
+                coord_type="projective",
+                coordinate=[rx, ry, rz],
+                coefficients=[self.a, self.b],
+            )
+        else: # 8M + 3S + 3m_a + 2m_3b + 15a
+            t0 = self.X * self.X
+            t1 = self.Y * self.Y
+            t2 = self.Z * self.Z
+            t3 = self.X * self.Y
+            t3 = t3 + t3
+            Z2_new = self.X * self.Z
+            Z2_new = Z2_new + Z2_new
+            X2_new = self.a * Z2_new
+            Y3 = self.b3 * t2
+            Y3 = X2_new + Y3
+            X2_new = t1 - Y3
+            Y3 = t1 + Y3
+            Y3 = X2_new * Y3
+            X2_new = t3 * X2_new
+            Z2_new = self.b3 * Z2_new
+            t2 = self.a * t2
+            t3 = t0 - t2
+            t3 = self.a * t3
+            t3 = t3 + Z2_new
+            Z2_new = t0 + t0
+            t0 = Z2_new + t0
+            t0 = t0 + t2
+            t0 = t0 * t3
+            Y3 = Y3 + t0
+            t2 = self.Y * self.Z
+            t2 = t2 + t2
+            t0 = t2 * t3
+            X2_new = X2_new - t0
+            Z2_new = t2 * t1
+            Z2_new = Z2_new + Z2_new
+            Z2_new = Z2_new + Z2_new
+            return pointFp(
+                coord_type="projective",
+                coordinate=[X2_new, Y3, Z2_new],
+                coefficients=[self.a, self.b],
+            )
+
 
     def scalar_mul(self, n):
         res = self
@@ -329,4 +400,10 @@ def random_pointFp(p: int, coefficients: list[Fp]):
 
 
 if __name__ == "__main__":
-    random_point = random_pointFp(p, [a, b])
+    random_point1 = random_pointFp(p, [a, b])
+    random_point2 = random_pointFp(p, [A_, B_])
+    # double_point1 = random_point1 + random_point2
+    double_point1 = random_point1.double()
+    double_point1.check_on_curve()
+    double_point2 = random_point2.double()
+    double_point2.check_on_curve()

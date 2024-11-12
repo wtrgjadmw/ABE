@@ -20,7 +20,7 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     D = zero - D_
     N_b = D_a_ + one
     N = B_ * N_b
-    if D.value == zero.value:
+    if D == zero:
         print("D == zero")
         D = xi * A_
 
@@ -44,7 +44,7 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
 
     alpha2 = alpha * alpha
     alpha2V = alpha2 * V
-    if alpha2V.value == U.value:
+    if alpha2V == U:
         X = N
         Y = t.sign() * alphaD
         Z = D
