@@ -66,11 +66,12 @@ def make_mem_task_definition(
         MMnum: int,
         MASnum: int):
     value = current_formula[0]
-    # if current_formula[2] == current_formula[3]:
-    #     operands = [current_formula[2]]
-    # else:
-    #     operands = [current_formula[2], current_formula[3]]
-    operands = [current_formula[2], current_formula[3]]
+    if current_formula[-1] == "CSEL":
+        operands = [current_formula[2], current_formula[3], current_formula[4]]
+    elif current_formula[2] == current_formula[3]:
+        operands = [current_formula[2]]
+    else:
+        operands = [current_formula[2], current_formula[3]]
     
     for i in range(len(operands)):
         operand = operands[i]
@@ -81,7 +82,7 @@ def make_mem_task_definition(
         else:
             prev_formula = find_prev_formula(formulas, operand)
             opcode = prev_formula[1]
-            if opcode == "INV":
+            if opcode == "INV" or opcode == "CSEL":
                 f_write.write("\tS += {0} < {1}\n".format(operand, value))
                 continue
             pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
@@ -183,6 +184,7 @@ def make_pyschedule(
     f_write.write("\n\t# resource\n")
     f_write.write("\tMM = S.Resources('MM', num={0}, size={1})\n".format(MMnum, MMstage))
     f_write.write("\tMM_in = S.Resources('MM_in', num={0})\n".format(MMnum))
+    f_write.write("\tCSEL = S.Resource('CSEL')\n")
     f_write.write("\tINV = S.Resource('INV')\n")
     f_write.write(
         "\tMAS = S.Resources('MAS', num={0}, size={1}, periods=range(1, horizon))\n".format(
@@ -246,6 +248,12 @@ def make_pyschedule(
                 "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(line[0])
             )
             f_write.write("\t" + line[0] + " += alt(INV)\n\n")
+
+        elif line[1] == "CSEL":
+            f_write.write(
+                "\t{0} = S.Task('{0}', length=3, delay_cost=1)\n".format(line[0])
+            )
+            f_write.write("\t" + line[0] + " += alt(CSEL)\n\n")
         else:
             raise Exception("ERROR: invalid operand: " + line[1])
         if line[0] in output_value:
@@ -262,6 +270,9 @@ def make_pyschedule(
                 )
                 max_finish_time = max(max_finish_time_1, max_finish_time_2)
             f_write.write("\tS += {}<{}\n\n".format(max_finish_time, line[0]))
+            f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(line[0]))
+            f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(line[0]))
+            f_write.write("\tS += {0} <= {0}_w\n\n".format(line[0]))
         if len(line) == 5:
             f_write.write("\tS += {}<{}\n\n".format(line[0], line[4]))
         make_mem_task_definition(
@@ -274,10 +285,6 @@ def make_pyschedule(
             MMnum,
             MASnum
         )
-        if line[0] in output_value:
-            f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(line[0]))
-            f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(line[0]))
-            f_write.write("\tS += {0} <= {0}_w\n\n".format(line[0]))
     mem_table_list.append(tmp_mem_table)
 
     # f_write.write("\tsolvers.mip.solve(S,msg=1,ratio_gap=1.01)\n\n")
@@ -307,7 +314,7 @@ def make_pyschedule(
 if __name__ == "__main__":
     start_time = time.perf_counter()
     psr = argparse.ArgumentParser(
-        usage="schedule.py -mn <number_of_MM> -ms <stages_of_MM> -an <number_of_MAS> -as <stages_of_MAS> -n <algorithm_name>",
+        usage="schedule.py -mn <number_of_MM> -ms <stages_of_MM> -an <number_of_MAS> -as <stages_of_MAS>",
         description="Execute scheduling with a 7-stage pipelined Fp montgomery multiplier, four Fp adders/subtractors, an Fp inversion operator",
     )
     psr.add_argument(
@@ -347,7 +354,7 @@ if __name__ == "__main__":
 
     def exec_split_scheduling(algo_name):
         formulas = read_formula_csv(
-            "/home/mfukuda/ABE/python/scheduling/csv/{}.csv".format(algo_name)
+            "/home/mfukuda/ABE/csv/{}.csv".format(algo_name)
         )
 
         dir_name = "{directory}/scheduling_result/{config}/{algo}".format(directory=os.getcwd(),config=config, algo=algo_name)
@@ -413,10 +420,10 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    # for algo_name in ["ladderMul", "yrecover"]:
-    #     exec_split_scheduling(algo_name)
-    for algo_name in ["CONJ", "FROB", "MUL", "PADD", "PDBL", "SPARSE", "SQR", "SQR012345", "INV"]:
+    for algo_name in ["EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY"]:
         exec_split_scheduling(algo_name)
+    # for algo_name in ["CONJ", "FROB", "MUL", "PADD", "PDBL", "SPARSE", "SQR", "SQR012345", "INV"]:
+    #     exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):
         if filename.endswith(".log") and "clone" in filename:
