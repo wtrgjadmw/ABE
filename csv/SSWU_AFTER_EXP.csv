@@ -1,0 +1,13 @@
+alpha,UV3_exp,UV,MUL
+alphaD,alpha,Z,MUL
+alpha2,alpha,alpha,MUL
+alpha2V,alpha2,V,MUL
+xit2N,xit2,N,MUL
+t3,t2,t,MUL
+t3alphaD,t3,alphaD,MUL
+y2,sqrt_negxi3,t3alphaD,MUL
+alpha2V_U,alpha2V,U,SUB
+X,alpha2V_U,xit2N,N,one,CSEL
+y,alpha2V_U,y2,alphaD,one,CSEL
+y_alt,zero,y,SUB
+Y,t,y,y_alt,zero,CSEL

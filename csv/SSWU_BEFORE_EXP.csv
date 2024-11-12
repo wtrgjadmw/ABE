@@ -2,14 +2,11 @@ t2,t,t,MUL
 xit2,zero,t2,SUB
 xi2t4,xit2,xit2,MUL
 D_a_,xit2,xi2t4,ADD
-D,D_a_,A_,MUL
-D_,zero,D_,SUB
+negD,D_a_,A_,MUL
+D,zero,negD,SUB
 N_b,D_a_,one,ADD
 N,B_,N_b,MUL
-
-// CMOV(c,a,b,x,y): c = (x==y) ? a : B_
-Z,negA,D_,D_,zero,CMOV
-
+Z,D,D,xiA,one,CSEL
 D2,Z,Z,MUL
 V,D2,Z,MUL
 N2,N,N,MUL
@@ -19,7 +16,6 @@ aND2,A_,ND2,MUL
 bD3,B_,V,MUL
 U_,N3,aND2,ADD
 U,U_,bD3,ADD
-
 UV,U,V,MUL
 V2,V,V,MUL
 UV3,UV,V2,MUL
