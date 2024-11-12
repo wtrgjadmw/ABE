@@ -1,9 +1,6 @@
 import random
 from util import bits_of, is_qr
 
-# return a if x == y, b otherwise.
-def CMOV(a,b,x,y):
-    return a if x == y else b
 
 # BLS12-381
 
@@ -206,34 +203,34 @@ class pointFp:
             t2 = self.Z * other.Z
             t3 = self.X + self.Y
             t4 = other.X + other.Y
-            t3 = t3 * t4
-            t4 = t0 + t1
-            t3 = t3 - t4
-            t4 = self.Y + self.Z
-            t5 = other.Y + other.Z
-            t4 = t4 * t5
-            t5 = t1 + t2
-            t4 = t4 - t5
-            X2_new = self.X + self.Z
-            Y2_new = other.X + other.Z
-            X2_new = X2_new * Y2_new
-            Y2_new = t0 + t2
-            Y2_new = X2_new - Y2_new
-            X2_new = t0 + t0
-            t0 = t0 + X2_new
-            t2 = t2 * Fp(12)
-            Z2_new = t1 + t2
-            t1 = t1 - t2
-            Y2_new = Y2_new * Fp(12)
-            X2_new = t4 * Y2_new
-            t2 = t3 * t1
-            X2_new = t2 - X2_new
-            Y2_new = t0 * Y2_new
-            t1 = t1 * Z2_new
-            Y2_new = t1 + Y2_new
-            t0 = t0 * t3
-            Z2_new = Z2_new * t4
-            Z2_new = Z2_new + t0
+            t5 = t3 * t4
+            t6 = t0 + t1
+            t7 = t5 - t6
+            t8 = self.Y + self.Z
+            t9 = other.Y + other.Z
+            t10 = t8 * t9
+            t11 = t1 + t2
+            t12 = t10 - t11
+            t13 = self.X + self.Z
+            t14 = other.X + other.Z
+            t15 = t13 * t14
+            t16 = t0 + t2
+            t17 = t15 - t16
+            t18 = t0 + t0
+            t19 = t0 + t18
+            t20 = t2 * Fp(12)
+            t21 = t1 + t20
+            t22 = t1 - t20
+            t23 = t17 * Fp(12)
+            t24 = t12 * t23
+            t25 = t7 * t22
+            X2_new = t25 - t24
+            t26 = t19 * t23
+            t27 = t22 * t21
+            Y2_new = t27 + t26
+            t28 = t19 * t7
+            t29 = t21 * t12
+            Z2_new = t29 + t28
             return pointFp(
                 coord_type="projective",
                 coordinate=[X2_new, Y2_new, Z2_new],
@@ -245,44 +242,44 @@ class pointFp:
             t2 = self.Z * other.Z
             t3 = self.X + self.Y
             t4 = other.X + other.Y
-            t3 = t3 * t4
-            t4 = t0 + t1
-            t3 = t3 - t4
-            t4 = self.X + self.Z
-            t5 = other.X + other.Z
-            t4 = t4 * t5
-            t5 = t0 + t2
-            t4 = t4 - t5
-            t5 = self.Y + self.Z
-            X2_new = other.Y + other.Z
-            t5 = t5 * X2_new
-            X2_new = t1 + t2
-            t5 = t5 - X2_new
-            Z2_new = self.a * t4
-            X2_new = self.b3 * t2
-            Z2_new = X2_new + Z2_new
-            X2_new = t1 - Z2_new
-            Z2_new = t1 + Z2_new
-            Y3 = X2_new * Z2_new
-            t1 = t0 + t0
-            t1 = t1 + t0
-            t2 = self.a * t2
-            t4 = self.b3 * t4
-            t1 = t1 + t2
-            t2 = t0 - t2
-            t2 = self.a * t2
-            t4 = t4 + t2
-            t0 = t1 * t4
-            Y3 = Y3 + t0
-            t0 = t5 * t4
-            X2_new = t3 * X2_new
-            X2_new = X2_new - t0
-            t0 = t3 * t1
-            Z2_new = t5 * Z2_new
-            Z2_new = Z2_new + t0
+            t5 = t3 * t4
+            t6 = t0 + t1
+            t7 = t5 - t6
+            t8 = self.X + self.Z
+            t9 = other.X + other.Z
+            t10 = t8 * t9
+            t11 = t0 + t2
+            t12 = t10 - t11
+            t13 = self.Y + self.Z
+            t14 = other.Y + other.Z
+            t15 = t13 * t14
+            t16 = t1 + t2
+            t17 = t15 - t16
+            t18 = self.a * t12
+            t19 = self.b3 * t2
+            t20 = t19 + t18
+            t21 = t1 - t20
+            t22 = t1 + t20
+            t23 = t21 * t22
+            t24 = t0 + t0
+            t25 = t24 + t0
+            t26 = self.a * t2
+            t27 = self.b3 * t12
+            t28 = t25 + t26
+            t29 = t0 - t26
+            t30 = self.a * t29
+            t31 = t27 + t30
+            t32 = t28 * t31
+            Y2_new = t23 + t32
+            t33 = t17 * t31
+            t34 = t7 * t21
+            X2_new = t34 - t33
+            t35 = t7 * t28
+            t36 = t17 * t22
+            Z2_new = t36 + t35
             return pointFp(
                 coord_type="projective",
-                coordinate=[X2_new, Y3, Z2_new],
+                coordinate=[X2_new, Y2_new, Z2_new],
                 coefficients=[self.a, self.b],
             )
 
@@ -292,20 +289,20 @@ class pointFp:
             t3 = self.X * self.Y
             t1 = self.Z * self.Y
             t2 = self.Z * self.Z
-            t2 = self.b3 * t2
-            rz = t0 + t0
-            rz = rz + rz
-            rz = rz + rz
-            rx = t2 * rz
-            ry = t0 + t2 
-            rz = t1 * rz
-            t1 = t2 + t2
-            t2 = t1 + t2
-            t0 = t0 - t2
-            ry = t0 * ry
-            ry = rx + ry
-            rx = t0 * t3
-            rx = rx + rx
+            t4 = self.b3 * t2
+            t5 = t0 + t0
+            t6 = t5 + t5
+            t7 = t6 + t6
+            t8 = t4 * t7
+            t9 = t0 + t4 
+            rz = t1 * t7
+            t10 = t4 + t4
+            t11 = t10 + t4
+            t12 = t0 - t11
+            t13 = t12 * t9
+            ry = t8 + t13
+            t14 = t12 * t3
+            rx = t14 + t14
             return pointFp(
                 coord_type="projective",
                 coordinate=[rx, ry, rz],
@@ -316,36 +313,36 @@ class pointFp:
             t1 = self.Y * self.Y
             t2 = self.Z * self.Z
             t3 = self.X * self.Y
-            t3 = t3 + t3
-            Z2_new = self.X * self.Z
-            Z2_new = Z2_new + Z2_new
-            X2_new = self.a * Z2_new
-            Y3 = self.b3 * t2
-            Y3 = X2_new + Y3
-            X2_new = t1 - Y3
-            Y3 = t1 + Y3
-            Y3 = X2_new * Y3
-            X2_new = t3 * X2_new
-            Z2_new = self.b3 * Z2_new
-            t2 = self.a * t2
-            t3 = t0 - t2
-            t3 = self.a * t3
-            t3 = t3 + Z2_new
-            Z2_new = t0 + t0
-            t0 = Z2_new + t0
-            t0 = t0 + t2
-            t0 = t0 * t3
-            Y3 = Y3 + t0
-            t2 = self.Y * self.Z
-            t2 = t2 + t2
-            t0 = t2 * t3
-            X2_new = X2_new - t0
-            Z2_new = t2 * t1
-            Z2_new = Z2_new + Z2_new
-            Z2_new = Z2_new + Z2_new
+            t4 = t3 + t3
+            t5 = self.X * self.Z
+            t6 = t5 + t5
+            t7 = self.a * t6
+            t8 = self.b3 * t2
+            t9 = t7 + t8
+            t10 = t1 - t9
+            t11 = t1 + t9
+            t12 = t10 * t11
+            t13 = t4 * t10
+            t14 = self.b3 * t6
+            t15 = self.a * t2
+            t16 = t0 - t15
+            t17 = self.a * t16
+            t18 = t17 + t14
+            t19 = t0 + t0
+            t20 = t19 + t0
+            t21 = t20 + t15
+            t22 = t21 * t18
+            Y2_new = t12 + t22
+            t23 = self.Y * self.Z
+            t24 = t23 + t23
+            t25 = t24 * t18
+            X2_new = t13 - t25
+            t26 = t24 * t1
+            t27 = t26 + t26
+            Z2_new = t27 + t27
             return pointFp(
                 coord_type="projective",
-                coordinate=[X2_new, Y3, Z2_new],
+                coordinate=[X2_new, Y2_new, Z2_new],
                 coefficients=[self.a, self.b],
             )
 
@@ -398,12 +395,34 @@ def random_pointFp(p: int, coefficients: list[Fp]):
     # TODO: check if rP is infinity point
     return hashed_point
 
+# // 3-cycle csel
+# // 1st cycle: decide_logic_input + csel_start
+# // 2nd cycle: first_input
+# // 3rd cycle: second_input
+
+# // csel_start should be 1-cycle signal, as there is no pipeline for swap_logic
+# // csel_mode == 1'b0: if decide_logic_input[0] == first_input[0] output first_input
+# // csel_mode == 1'b1: if decide_logic_input != 'b0 output first_input
+def csel(mode, cond: Fp, din1: Fp, din2: Fp):
+    if mode == 0:
+        if (cond.value & 1) == (din1.value & 1):
+            return din1
+        else:
+            return din2
+    else:
+        if cond.value != 0:
+            return din1
+        else:
+            return din2
 
 if __name__ == "__main__":
     random_point1 = random_pointFp(p, [a, b])
-    random_point2 = random_pointFp(p, [A_, B_])
-    # double_point1 = random_point1 + random_point2
-    double_point1 = random_point1.double()
+    random_point2 = random_pointFp(p, [a, b])
+    random_point3 = random_pointFp(p, [A_, B_])
+    random_point4 = random_pointFp(p, [A_, B_])
+    double_point1 = random_point1 + random_point2
+    # double_point1 = random_point1.double()
     double_point1.check_on_curve()
-    double_point2 = random_point2.double()
+    double_point2 = random_point3 + random_point4
+    # double_point2 = random_point2.double()
     double_point2.check_on_curve()

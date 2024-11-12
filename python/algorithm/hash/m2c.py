@@ -6,6 +6,8 @@ from h2f import hash_to_field
 # Output: Q, a point on the elliptic curve E.
 # Steps: defined in Section 6.
 
+# xi = Fp(11)
+# sqrt_negxi3, is_sqr = (zero-(xi**3)).sqrt()
 
 def SSWU_before_isogeny(t_: int) -> pointFp:
     if t_ == 0 or t_ == 1 or t_ == -1:
@@ -51,6 +53,7 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     else:
         X = xit2 * N
         t3 = t * t2
+        # Y = sqrt_negxi3 * t3 * alphaD
         Y = t3 * alphaD
         Z = D
 
@@ -105,6 +108,12 @@ def map_to_curve_BLS12381G1(t_list: list[list[int]]) -> pointFp:
     M = cofactor_clearing(P)
     return M
 
+def test_SSWU():
+    p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
+    for i in range(100):
+        t = random.randint(1, p-1)
+        Q = SSWU_before_isogeny(t)
+
 
 if __name__ == "__main__":
     t_list = hash_to_field("abc".encode("utf-8"), 2)
@@ -115,3 +124,4 @@ if __name__ == "__main__":
     print("result point: ")
     print("%x" % MX.value)
     print("%x" % MY.value)
+    # test_SSWU()

@@ -18,16 +18,14 @@ from h2f import hash_to_field
 
 h2c_exponent = 0x680447a8e5ff9a692c6e9ed90d2eb35d91dd2e13ce144afd9cc34a83dac3d8907aaffffac54ffffee7fbfffffffeaaa
 
-# xi = Fp(11)
-# print((zero-(xi**3)).value)
-# sqrt_negxi3, is_sqr = (zero-(xi**3)).sqrt()
-# print((sqrt_negxi3**2).value)
-# print((sqrt_negxi3).value)
+xi = Fp(11)
+sqrt_negxi3, is_sqr = (zero-(xi**3)).sqrt()
+
 
 def g(x):
     return x**3 + A_*x + B_
 
-negA = xi * A_
+xiA = xi * A_
 half_p_1 = (p - 1) // 2
 
 def SSWU_before_isogeny(t_: int) -> pointFp:
@@ -43,17 +41,16 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     D = zero - D_
     N_b = D_a_ + one
     N = B_ * N_b
-    Z = CMOV(negA, D, D.value, zero.value)
+    Z = csel(cond=D, din1=D, din2=xiA, mode=1)
 
     D2 = Z * Z
-    D3 = D2 * Z
+    V = D2 * Z
     N2 = N * N
     N3 = N2 * N
     ND2 = N * D2
     aND2 = A_ * ND2
-    bD3 = B_ * D3
+    bD3 = B_ * V
     U = N3 + aND2 + bD3
-    V = D3
 
     UV = U * V
     V2 = V * V
@@ -68,8 +65,15 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     xit2N = xit2 * N
     t3 = t * t2
     t3alphaD = t3 * alphaD
-    X = CMOV(N, xit2N, alpha2V.value, U.value)
-    Y = CMOV(t.sign()*alphaD, t3alphaD, alpha2V.value, U.value)
+    y2 = sqrt_negxi3 * t3alphaD
+
+    alpha2V_U = alpha2V - U
+
+    X = csel(cond=alpha2V_U, din1=xit2N, din2=N, mode=1)
+    y = csel(cond=alpha2V_U, din1=y2, din2=alphaD, mode=1)
+    y_alt = zero - y
+
+    Y = csel(cond=t, din1=y, din2=y_alt, mode=0)
 
     Q = pointFp(coord_type="projective", coordinate=[X, Y, Z], coefficients=[A_, B_])
     Q.check_on_curve()
