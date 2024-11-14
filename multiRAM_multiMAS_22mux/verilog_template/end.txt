@@ -1,0 +1,16 @@
+    // Instructions assignment
+    reg [`ALU_INST_BITS-1:0] INST2;
+    always @ (posedge clk or posedge rst) begin
+        if (rst) begin
+            INST2 <= 'b0;
+            MM_dout_reg <= 'b0;
+            MAS_dout_reg <= 'b0;
+        end else begin
+            INST2 <= INST1;
+            MM_dout_reg <= MM_dout;
+            MAS_dout_reg <= MAS_dout;
+        end
+    end
+
+    
+endmodule

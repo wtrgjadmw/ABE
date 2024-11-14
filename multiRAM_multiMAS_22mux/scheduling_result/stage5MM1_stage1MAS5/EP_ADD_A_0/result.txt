@@ -1,0 +1,2 @@
+input = ['PX', 'QX', 'PY', 'QY', 'PZ', 'QZ', 't', '0', '12']
+output = ['PX_new', 'PY_new', 'PZ_new']

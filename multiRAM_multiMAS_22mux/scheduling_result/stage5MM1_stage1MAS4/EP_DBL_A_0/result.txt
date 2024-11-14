@@ -1,0 +1,5 @@
+input = ['P', 'Y', 'PX', 'PY', 'PZ', 'Z', 'b3', 't', '0', '5', '6', '4', '1']
+output = ['t5', 't6', 'new_PZ', 'new_PY', 't14', 'new_PX']
+solution = []
+formulas = [<formula_data.formulaData object at 0x10972bb80>, <formula_data.formulaData object at 0x10972b970>, <formula_data.formulaData object at 0x10972bb20>, <formula_data.formulaData object at 0x10972bc10>, <formula_data.formulaData object at 0x109737010>, <formula_data.formulaData object at 0x109737100>, <formula_data.formulaData object at 0x109737130>, <formula_data.formulaData object at 0x1097370a0>, <formula_data.formulaData object at 0x109737070>, <formula_data.formulaData object at 0x109736f50>, <formula_data.formulaData object at 0x109736ec0>, <formula_data.formulaData object at 0x109736e60>, <formula_data.formulaData object at 0x109736e00>, <formula_data.formulaData object at 0x109736da0>, <formula_data.formulaData object at 0x109735540>, <formula_data.formulaData object at 0x1097354e0>, <formula_data.formulaData object at 0x109735480>, <formula_data.formulaData object at 0x109735420>]
+mem_table = {}

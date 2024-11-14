@@ -1,0 +1,76 @@
+// ALU MM Memory
+`define ALU_MM_MEM_SIZE		128
+`define ALU_MM_MEM_ADDR_BITS	7
+
+// ALU MAS Memory
+`define ALU_MAS_MEM_SIZE		64
+`define ALU_MAS_MEM_ADDR_BITS	6
+
+// ALU MAIN Memory
+`define ALU_MAIN_MEM_SIZE		256
+`define ALU_MAIN_MEM_ADDR_BITS	8
+
+// ===================================================================================
+`define INST_CAL_MUX_BIT		5
+`define INST_MAIN_MEM_MUX_BIT	3
+`define INST_ADDR_MASK_BIT		1
+`define INST_MM_MAS_VAL_BIT		1
+`define INST_MAS_ISSUB_BIT		1
+`define INST_WRITE_EN_BIT		1
+`define INST_CONDKEY_BIT		2
+
+// ALU Instructions Index
+`define INDEX_MM0_READA		0
+`define INDEX_MM0_MUXA		7
+`define INDEX_MM0_READB		12
+`define INDEX_MM0_MUXB		19
+`define INDEX_MM0_VAL		24
+`define INDEX_MM0_WRITE		25
+`define INDEX_MM0_WE		32
+`define INDEX_MAS0_READA		33
+`define INDEX_MAS0_MUXA		39
+`define INDEX_MAS0_READB		44
+`define INDEX_MAS0_MUXB		50
+`define INDEX_MAS0_ISSUB		55
+`define INDEX_MAS0_VAL		56
+`define INDEX_MAS0_WRITE		57
+`define INDEX_MAS0_WE		63
+`define INDEX_MAS1_READA		64
+`define INDEX_MAS1_MUXA		70
+`define INDEX_MAS1_READB		75
+`define INDEX_MAS1_MUXB		81
+`define INDEX_MAS1_ISSUB		86
+`define INDEX_MAS1_VAL		87
+`define INDEX_MAS1_WRITE		88
+`define INDEX_MAS1_WE		94
+`define INDEX_MAS2_READA		95
+`define INDEX_MAS2_MUXA		101
+`define INDEX_MAS2_READB		106
+`define INDEX_MAS2_MUXB		112
+`define INDEX_MAS2_ISSUB		117
+`define INDEX_MAS2_VAL		118
+`define INDEX_MAS2_WRITE		119
+`define INDEX_MAS2_WE		125
+`define INDEX_MAS3_READA		126
+`define INDEX_MAS3_MUXA		132
+`define INDEX_MAS3_READB		137
+`define INDEX_MAS3_MUXB		143
+`define INDEX_MAS3_ISSUB		148
+`define INDEX_MAS3_VAL		149
+`define INDEX_MAS3_WRITE		150
+`define INDEX_MAS3_WE		156
+`define INDEX_MAIN_READA		157
+`define INDEX_MAIN_READB		165
+`define INDEX_MAIN_WRITE		173
+`define INDEX_MAIN_WE		181
+`define INDEX_MAIN_WRITE_MUX		182
+`define INDEX_MAIN_READ_MASKA		185
+`define INDEX_MAIN_READ_MASKB		186
+`define INDEX_MAIN_WRITE_MASK		187
+`define INDEX_INST_CONT		190
+`define INDEX_INST_END		191
+
+`define INDEX_CONDKEY			188
+
+`define ALU_INST_BITS			185
+`define INST_BITS				192

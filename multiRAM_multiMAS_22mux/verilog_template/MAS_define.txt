@@ -1,0 +1,28 @@
+    // MAS{index} (Modular Adder/Subtractor) Memory and its relevant signals
+    wire MAS{index}_MEM_we;
+    wire [DAT_BITS-1:0] MAS{index}_MEM_douta,MAS{index}_MEM_doutb,MAS{index}_MEM_din;
+    wire [`ALU_MAS_MEM_ADDR_BITS-1:0] MAS{index}_MEM_raddra,MAS{index}_MEM_raddrb,MAS{index}_MEM_waddr;
+    ram2r1w_tdpram #( .DAT_BITS(DAT_BITS), .MEM_SIZE(`ALU_MAS_MEM_SIZE), .ADDR_BITS(`ALU_MAS_MEM_ADDR_BITS),.READ_LAT(1),.INIT_FILE("RAMINIT_ALU_MAS{index}_MEM.mem") ) 
+                    MAS{index}_MEM( .clk(clk),.rst(rst),.douta(MAS{index}_MEM_douta),.doutb(MAS{index}_MEM_doutb),.raddra(MAS{index}_MEM_raddra),.raddrb(MAS{index}_MEM_raddrb),.din(MAS{index}_MEM_din),.waddr(MAS{index}_MEM_waddr),.we(MAS{index}_MEM_we));
+    wire [DAT_BITS-1:0] MAS{index}_dina,MAS{index}_dinb,MAS{index}_dout;
+    reg [DAT_BITS-1:0] MAS{index}_dout_reg;
+    wire MAS{index}_ival,MAS{index}_oval;
+    wire issub{index};
+    wire MAS{index}_retin_web,MAS{index}_retout_we;
+    wire [`ALU_MAS_MEM_ADDR_BITS-1:0] MAS{index}_retin_waddrb,MAS{index}_retout_waddr;
+    wire [`INST_CAL_MUX_BIT-1:0] MAS{index}_muxa,MAS{index}_muxb;
+
+    assign MAS{index}_MEM_raddra = INST1[`INDEX_MAS{index}_READA +: `ALU_MAS_MEM_ADDR_BITS];
+    assign MAS{index}_muxa = INST2[`INDEX_MAS{index}_MUXA +: `INST_CAL_MUX_BIT];
+    assign MAS{index}_MEM_raddrb = INST1[`INDEX_MAS{index}_READB +: `ALU_MAS_MEM_ADDR_BITS];
+    assign MAS{index}_muxb = INST2[`INDEX_MAS{index}_MUXB +: `INST_CAL_MUX_BIT];
+    assign MAS{index}_MEM_waddr = MAS{index}_retout_waddr;
+    assign MAS{index}_MEM_we = MAS{index}_retout_we;
+    assign MAS{index}_MEM_din = MAS{index}_dout ;
+    assign MAS{index}_ival = INST2[`INDEX_MAS{index}_VAL];
+    assign issub{index} = INST2[`INDEX_MAS{index}_ISSUB];
+    assign MAS{index}_retin_waddrb = INST2[`INDEX_MAS{index}_WRITE +: `ALU_MAS_MEM_ADDR_BITS];
+    assign MAS{index}_retin_web = INST2[`INDEX_MAS{index}_WE];
+
+    mas_wrap #(.BIT_LEN(DAT_BITS)) mas{index}_wrap (.clk(clk),.rst(rst), .issub(issub{index}), .dina(MAS{index}_dina),.dinb(MAS{index}_dinb),.retaddr_in({{MAS{index}_retin_web,MAS{index}_retin_waddrb}}),
+                                            .dout(MAS{index}_dout),.retaddr_out({{MAS{index}_retout_we,MAS{index}_retout_waddr}}),.ival(MAS{index}_ival),.oval(MAS{index}_oval));

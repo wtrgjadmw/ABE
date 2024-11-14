@@ -108,6 +108,16 @@ def map_to_curve_BLS12381G1(t_list: list[list[int]]) -> pointFp:
     M = cofactor_clearing(P)
     return M
 
+def map_to_curve_BLS12381G1_2iso(t_list: list[list[int]]) -> pointFp:
+    Q0 = SSWU_before_isogeny(t_list[0][0])
+    Q1 = SSWU_before_isogeny(t_list[1][0])
+    P0 = isogeny(Q0)
+    P1 = isogeny(Q1)
+    P = P0 + P1
+    P.check_on_curve()
+    M = cofactor_clearing(P)
+    return M
+
 def test_SSWU():
     p = 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab
     for i in range(100):
@@ -118,6 +128,13 @@ def test_SSWU():
 if __name__ == "__main__":
     t_list = hash_to_field("abc".encode("utf-8"), 2)
     M = map_to_curve_BLS12381G1(t_list)
+    M.check_on_curve()
+    MX = M.X / M.Z
+    MY = M.Y / M.Z
+    print("result point: ")
+    print("%x" % MX.value)
+    print("%x" % MY.value)
+    M = map_to_curve_BLS12381G1_2iso(t_list)
     M.check_on_curve()
     MX = M.X / M.Z
     MY = M.Y / M.Z

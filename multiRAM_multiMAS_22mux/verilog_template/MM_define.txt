@@ -1,0 +1,27 @@
+    // MM{index} (Modular Multiplication) Memory and its relevant signals
+    wire MM{index}_MEM_we;
+    wire [DAT_BITS-1:0] MM{index}_MEM_douta,MM{index}_MEM_doutb,MM{index}_MEM_din;
+    wire [`ALU_MM_MEM_ADDR_BITS-1:0] MM{index}_MEM_raddra,MM{index}_MEM_raddrb,MM{index}_MEM_waddr;
+
+    ram2r1w_tdpram #( .DAT_BITS(DAT_BITS), .MEM_SIZE(`ALU_MM_MEM_SIZE), .ADDR_BITS(`ALU_MM_MEM_ADDR_BITS),.READ_LAT(1),.INIT_FILE("RAMINIT_ALU_MM{index}_MEM.mem") ) 
+                    MM{index}_MEM ( .clk(clk),.rst(rst),.douta(MM{index}_MEM_douta),.doutb(MM{index}_MEM_doutb),.raddra(MM{index}_MEM_raddra),.raddrb(MM{index}_MEM_raddrb),.din(MM{index}_MEM_din),.waddr(MM{index}_MEM_waddr),.we(MM{index}_MEM_we));
+    wire [DAT_BITS-1:0] MM{index}_dina,MM{index}_dinb,MM{index}_dout;
+    reg [DAT_BITS-1:0] MM{index}_dout_reg;
+    wire MM{index}_ival,MM{index}_oval;
+    wire MM{index}_retin_wea,MM{index}_retout_we;
+    wire [`ALU_MM_MEM_ADDR_BITS-1:0] MM{index}_retin_waddra,MM{index}_retout_waddr;
+    wire [`INST_CAL_MUX_BIT-1:0] MM{index}_muxa,MM{index}_muxb;
+
+    assign MM{index}_MEM_raddra = INST1[`INDEX_MM{index}_READA +: `ALU_MM_MEM_ADDR_BITS];
+    assign MM{index}_muxa = INST2[`INDEX_MM{index}_MUXA +: `INST_CAL_MUX_BIT];
+    assign MM{index}_MEM_raddrb = INST1[`INDEX_MM{index}_READB +: `ALU_MM_MEM_ADDR_BITS];
+    assign MM{index}_muxb = INST2[`INDEX_MM{index}_MUXB +: `INST_CAL_MUX_BIT];
+    assign MM{index}_MEM_waddr = MM{index}_retout_waddr;
+    assign MM{index}_MEM_we = MM{index}_retout_we;
+    assign MM{index}_MEM_din = MM{index}_dout ;
+    assign MM{index}_ival = INST2[`INDEX_MM{index}_VAL];
+    assign MM{index}_retin_waddra = INST2[`INDEX_MM{index}_WRITE +: `ALU_MM_MEM_ADDR_BITS];
+    assign MM{index}_retin_wea = INST2[`INDEX_MM{index}_WE];
+
+    mm_wrap #(.BIT_LEN(DAT_BITS)) mm{index}_wrap ( .clk(clk),.rst(rst),.dina(MM{index}_dina),.dinb(MM{index}_dinb),.retaddr_in({{MM{index}_retin_wea,MM{index}_retin_waddra}}),
+                                            .dout(MM{index}_dout),.retaddr_out({{MM{index}_retout_we,MM{index}_retout_waddr}}),.ival(MM{index}_ival),.oval(MM{index}_oval) );
