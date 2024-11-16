@@ -78,14 +78,7 @@ def make_mem_task_definition(
         target_formula: formulaData,
         MMnum: int,
         MASnum: int):
-    # value = current_formula[0]
-    # if current_formula[-1] == "CSEL":
-    #     operands = [current_formula[2], current_formula[3], current_formula[4]]
-    # elif current_formula[2] == current_formula[3]:
-    #     operands = [current_formula[2]]
-    # else:
-    #     operands = [current_formula[2], current_formula[3]]
-    
+
     for i in range(len(target_formula.operands)):
         operand = target_formula.operands[i]
         mem_value_name = "{0}_mem{1}".format(target_formula.result, i)
@@ -96,29 +89,39 @@ def make_mem_task_definition(
             prev_formula = find_prev_formula(formulas, operand)
             if prev_formula is None:
                 raise Exception("can't find previous formula")
-            opcode = prev_formula.type
-            if opcode == "INV" or opcode == "CSEL":
-                f_write.write("\tS += {0} < {1}\n".format(operand, target_formula.result))
-                continue
-            pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
-            f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
-            if opcode == "MUL":
-                if pre_resource is None:
-                    f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
-                    for j in range(MMnum):
-                        f_write.write("\tS += ({0}*MM[{3}])-1 < {1}_mem{2}*MM_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
-                else:
-                    f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
-                    f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
-            elif opcode == "ADD" or opcode == "SUB":
-                if pre_resource is None:
-                    f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
-                    for j in range(MASnum):
-                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
-                else:
-                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
-                    f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
-        f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result, mem_value_name))
+            prev_type = prev_formula.type
+            if target_formula.type == "CSEL" and prev_type != "CSEL":
+                f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
+                f_write.write("\tS += {0} < {1}\n".format(pre_end_time + 2, mem_value_name))
+            else:
+                pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
+                f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
+                # if prev_type == "INV":
+                #     f_write.write("\tS += {0} < {1}\n".format(operand, target_formula.result))
+                #     continue
+                if prev_type == "CSEL":
+                    f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
+                    f_write.write("\tS += {0} < {1}\n".format(pre_end_time + 6, mem_value_name))
+                if prev_type == "MUL":
+                    if pre_resource is None:
+                        f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
+                        for j in range(MMnum):
+                            f_write.write("\tS += ({0}*MM[{3}])-1 < {1}_mem{2}*MM_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
+                    else:
+                        f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                        f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
+                elif prev_type == "ADD" or prev_type == "SUB":
+                    if pre_resource is None:
+                        f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
+                        for j in range(MASnum):
+                            f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
+                    else:
+                        f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                        f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
+            if target_formula.type == "CSEL":
+                f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result + "+ {}".format(i), mem_value_name))
+            else:
+                f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result, mem_value_name))
         mem_table[mem_value_name] = operand
 
 
@@ -200,7 +203,7 @@ def make_pyschedule(
     f_write.write("\tMM = S.Resources('MM', num={0}, size={1})\n".format(MMnum, MMstage))
     f_write.write("\tMM_in = S.Resources('MM_in', num={0})\n".format(MMnum))
     f_write.write("\tCSEL = S.Resource('CSEL')\n")
-    f_write.write("\tINV = S.Resource('INV')\n")
+    # f_write.write("\tINV = S.Resource('INV')\n")
     f_write.write(
         "\tMAS = S.Resources('MAS', num={0}, size={1}, periods=range(1, horizon))\n".format(
             MASnum, MASstage
@@ -220,7 +223,8 @@ def make_pyschedule(
     f_write.write("\tMAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)\n")
 
     multi_resources = ["MM", "MM_in", "MAS", "MM_MEM", "MAS_MEM", "MAIN_MEM_r"]
-    single_resources = ["INV", "CSEL", "MAIN_MEM_w"]
+    # single_resources = ["INV", "CSEL", "MAIN_MEM_w"]
+    single_resources = ["CSEL", "MAIN_MEM_w"]
 
     f_write.write("\n\t# result of previous scheduling\n")
 
@@ -258,11 +262,11 @@ def make_pyschedule(
                 "\t{0} = S.Task('{0}', length={1}, delay_cost=1)\n".format(target_formula.result, MASstage)
             )
             f_write.write("\t" + target_formula.result + " += alt(MAS)\n\n")
-        elif target_formula.type == "INV":
-            f_write.write(
-                "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(target_formula.result)
-            )
-            f_write.write("\t" + target_formula.result + " += alt(INV)\n\n")
+        # elif target_formula.type == "INV":
+        #     f_write.write(
+        #         "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(target_formula.result)
+        #     )
+        #     f_write.write("\t" + target_formula.result + " += alt(INV)\n\n")
 
         elif target_formula.type == "CSEL":
             f_write.write(
@@ -302,8 +306,8 @@ def make_pyschedule(
         )
     mem_table_list.append(tmp_mem_table)
 
-    f_write.write("\tsolvers.mip.solve(S,msg=1,ratio_gap=1.01)\n\n")
-    # f_write.write("\tsolvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)\n\n")
+    # f_write.write("\tsolvers.mip.solve(S,msg=1,ratio_gap=1.01)\n\n")
+    f_write.write("\tsolvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)\n\n")
     f_write.write(
         "\tsolution = [['hoge']*len(S.solution()[1]) for i in range(len(S.solution()))]\n"
     )
