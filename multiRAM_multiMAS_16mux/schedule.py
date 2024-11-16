@@ -26,7 +26,7 @@ def read_formula_csv(filename) -> list[formulaData]:
             formula = formulaData(operands=line[1:4], result=line[0], type = line[-1])
         else:
             if line[1] == line[2]:
-                formula = formulaData(operands=line[1], result=line[0], type = line[-1])
+                formula = formulaData(operands=[line[1]], result=line[0], type = line[-1])
             else:
                 formula = formulaData(operands=line[1:3], result=line[0], type = line[-1])
         formulas.append(formula)
@@ -43,12 +43,16 @@ def find_prev_formula(formulas: list[formulaData], operand):
 
 
 # c = a + b, e = c + d の時 c から e とスケジューリング結果を探して，最小／最大のサイクル数を返す
-def find_next_formula(value, formulas, pre_sche_result):
+def find_next_formula(value, formulas: list[formulaData], pre_sche_result):
     min_finish_time, max_finish_time = 1000, 0
     for formula in formulas:
-        if (formula[2] == value) or (formula[3] == value):
+        is_prev_formula = False
+        for operand in formula.operands:
+            if operand == value:
+                is_prev_formula = True
+        if is_prev_formula:
             for sol in pre_sche_result:
-                if formula[0] == sol[0]:
+                if formula.result == sol[0]:
                     min_finish_time = min(min_finish_time, int(sol[2]))
                     max_finish_time = max(max_finish_time, int(sol[2]))
     return min_finish_time, max_finish_time
@@ -61,7 +65,8 @@ def find_prev_resource(pre_sche_result, operand):
             resource_num = int(pre[1][-1])
             end_time = int(pre[3])
             return resource, resource_num, end_time
-    raise Exception("previous formula doesn't exit")
+    return None, None, None
+    # raise Exception("previous scheduling result of {} doesn't exit".format(operand))
 
 
 def make_mem_task_definition(
@@ -86,16 +91,16 @@ def make_mem_task_definition(
         mem_value_name = "{0}_mem{1}".format(target_formula.result, i)
         if operand in input_value:
             f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
-            f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
+            f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, 0 if target_formula.type == "CSEL" else i))
         else:
             prev_formula = find_prev_formula(formulas, operand)
+            if prev_formula is None:
+                raise Exception("can't find previous formula")
             opcode = prev_formula.type
             if opcode == "INV" or opcode == "CSEL":
                 f_write.write("\tS += {0} < {1}\n".format(operand, target_formula.result))
                 continue
             pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
-            if prev_formula is None:
-                raise Exception("can't find previous formula")
             f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
             if opcode == "MUL":
                 if pre_resource is None:
@@ -109,7 +114,7 @@ def make_mem_task_definition(
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
                     for j in range(MASnum):
-                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, target_formula.result, i, j*2+i))
+                        f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
                 else:
                     f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
@@ -212,10 +217,10 @@ def make_pyschedule(
 
     # 2write-2read RAM
     f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)\n")
-    f_write.write("\tMAIN_MEM_r = S.Resource('MAIN_MEM_r', num=2)\n")
+    f_write.write("\tMAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)\n")
 
-    multi_resources = ["MM", "MM_in", "MAS", "MM_MEM", "MAS_MEM"]
-    single_resources = ["INV", "MAIN_MEM_w", "MAIN_MEM_r"]
+    multi_resources = ["MM", "MM_in", "MAS", "MM_MEM", "MAS_MEM", "MAIN_MEM_r"]
+    single_resources = ["INV", "CSEL", "MAIN_MEM_w"]
 
     f_write.write("\n\t# result of previous scheduling\n")
 
@@ -381,14 +386,15 @@ if __name__ == "__main__":
         split_ope.append([])
 
         for i in range(len(split_ope)):
-            print(i, len(split_ope[i]))
+            print("\nlen(split_ope[{}])={}".format(i, len(split_ope[i])))
             for split_opei_data in split_ope[i]:
                 split_opei_data.print()
+        print()
 
         solution = []
         pre_sche_result = solution
         mem_table_list = []
-        print(len(split_ope))
+        # print(len(split_ope))
 
         cnt = 0
         while cnt < len(split_ope):
@@ -433,10 +439,11 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    for algo_name in ["EP_ADD_A_0"]:
-        exec_split_scheduling(algo_name)
-    # for algo_name in ["CONJ", "FROB", "MUL", "PADD", "PDBL", "SPARSE", "SQR", "SQR012345", "INV"]:
+    # for algo_name in ["SSWU_BEFORE_EXP"]:
     #     exec_split_scheduling(algo_name)
+    for algo_name in ["EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "INV", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_0", "ISOGENY", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP"]:
+    # for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "INV", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY"]:
+        exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):
         if filename.endswith(".log") and "clone" in filename:

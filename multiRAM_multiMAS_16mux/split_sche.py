@@ -3,7 +3,7 @@ from formula_data import formulaData
 
 # 大規模スケジューリングの分割
 
-FIRST_DIVIDE = 20
+FIRST_DIVIDE = 30
 BASIC_DIVIDE = 50
 
 def split_list(lst: list[formulaData], division_num: int):
@@ -29,16 +29,11 @@ def make_split_scheduling(formulas: list[formulaData]):
 
     input_first = copy.deepcopy(inputs)
     knows = inputs
-    # alls = []
-    # alls += inputs
-    # for s in formulas:
-    #     alls.append(s[0])
     all_data += inputs
     cnt = 0
     split_ope: list[list[formulaData]] = [[] for i in range(0, 100)]
     split_index = 0
     divide_num = FIRST_DIVIDE  # RAMの読み出しのスケジューリングに時間がかかるので1番目だけ30, 後は70
-    output_formulas = []
     while (set(knows) != set(all_data)):
         knows_tmp = []
         split_tmp: list[formulaData] = []
@@ -58,16 +53,19 @@ def make_split_scheduling(formulas: list[formulaData]):
                 if len(split_ope[split_index]) != 0:
                     split_index += 1
                 split_ope[split_index] += divided_split_tmp[i]
+            if split_index != 0:
+                divide_num = BASIC_DIVIDE
+
         else:
             split_ope[split_index] += split_tmp
-        if cnt == 0:
-            divide_num = BASIC_DIVIDE
-            split_index += 1
+        # if cnt == 0:
+        #     divide_num = BASIC_DIVIDE
+        #     split_index += 1
 
         knows += knows_tmp
-        cnt += 1
-    print(knows)
-    print(split_ope)
+        # cnt += 1
+    # print(knows)
+    # print(split_ope)
     if (set(knows) != set(all_data)):
         print("ng:split scheduling")
         exit()
@@ -77,6 +75,6 @@ def make_split_scheduling(formulas: list[formulaData]):
     for s in split_ope:
         if s != []:
             split_ope_c.append(s)
-            print(cnt, s)
+            # print(cnt, s)
             cnt += 1
     return split_ope_c, input_first, outputs, input_num
