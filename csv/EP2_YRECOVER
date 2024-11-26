@@ -24,14 +24,6 @@ r4_t4,r4_t2,r4_t3,MUL
 r40,r4_t0,r4_t1,SUB
 r4_t5,r4_t0,r4_t1,ADD
 r41,r4_t4,r4_t5,SUB
-r4_t0,PX0,Z10,MUL
-r4_t1,PX1,Z11,MUL
-r4_t2,PX0,PX1,ADD
-r4_t3,Z10,Z11,ADD
-r4_t4,r4_t2,r4_t3,MUL
-r40,r4_t0,r4_t1,SUB
-r4_t5,r4_t0,r4_t1,ADD
-r41,r4_t4,r4_t5,SUB
 r5_t0,PX0,X10,MUL
 r5_t1,PX1,X11,MUL
 r5_t2,PX0,PX1,ADD
