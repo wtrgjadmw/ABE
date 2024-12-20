@@ -2,14 +2,13 @@ from pyschedule import Scenario, solvers, plotters, alt
 
 
 def solve():
-	horizon = 90
+	horizon = 120
 	S = Scenario("schedule0", horizon=horizon)
 
 	# resource
 	MM = S.Resources('MM', num=1, size=5)
 	MM_in = S.Resources('MM_in', num=1)
 	CSEL = S.Resource('CSEL')
-	INV = S.Resource('INV')
 	MAS = S.Resources('MAS', num=4, size=1, periods=range(1, horizon))
 	MM_MEM = S.Resources('MM_MEM', num=2)
 	MAS_MEM = S.Resources('MAS_MEM', num=8)
@@ -21,7 +20,6 @@ def solve():
 	# new tasks
 	c000 = S.Task('c000', length=1, delay_cost=1)
 	c000 += alt(MAS)
-
 	S += 0<c000
 
 	c000_w = S.Task('c000_w', length=1, delay_cost=1)
@@ -38,7 +36,6 @@ def solve():
 
 	c001 = S.Task('c001', length=1, delay_cost=1)
 	c001 += alt(MAS)
-
 	S += 0<c001
 
 	c001_w = S.Task('c001_w', length=1, delay_cost=1)
@@ -55,7 +52,6 @@ def solve():
 
 	c010 = S.Task('c010', length=1, delay_cost=1)
 	c010 += alt(MAS)
-
 	S += 0<c010
 
 	c010_w = S.Task('c010_w', length=1, delay_cost=1)
@@ -72,7 +68,6 @@ def solve():
 
 	c011 = S.Task('c011', length=1, delay_cost=1)
 	c011 += alt(MAS)
-
 	S += 0<c011
 
 	c011_w = S.Task('c011_w', length=1, delay_cost=1)
@@ -89,7 +84,6 @@ def solve():
 
 	c100 = S.Task('c100', length=1, delay_cost=1)
 	c100 += alt(MAS)
-
 	S += 0<c100
 
 	c100_w = S.Task('c100_w', length=1, delay_cost=1)
@@ -106,7 +100,6 @@ def solve():
 
 	c101 = S.Task('c101', length=1, delay_cost=1)
 	c101 += alt(MAS)
-
 	S += 0<c101
 
 	c101_w = S.Task('c101_w', length=1, delay_cost=1)
@@ -123,7 +116,6 @@ def solve():
 
 	c110 = S.Task('c110', length=1, delay_cost=1)
 	c110 += alt(MAS)
-
 	S += 0<c110
 
 	c110_w = S.Task('c110_w', length=1, delay_cost=1)
@@ -140,7 +132,6 @@ def solve():
 
 	c111 = S.Task('c111', length=1, delay_cost=1)
 	c111 += alt(MAS)
-
 	S += 0<c111
 
 	c111_w = S.Task('c111_w', length=1, delay_cost=1)
@@ -157,7 +148,6 @@ def solve():
 
 	c200 = S.Task('c200', length=1, delay_cost=1)
 	c200 += alt(MAS)
-
 	S += 0<c200
 
 	c200_w = S.Task('c200_w', length=1, delay_cost=1)
@@ -174,7 +164,6 @@ def solve():
 
 	c201 = S.Task('c201', length=1, delay_cost=1)
 	c201 += alt(MAS)
-
 	S += 0<c201
 
 	c201_w = S.Task('c201_w', length=1, delay_cost=1)
@@ -191,7 +180,6 @@ def solve():
 
 	c210 = S.Task('c210', length=1, delay_cost=1)
 	c210 += alt(MAS)
-
 	S += 0<c210
 
 	c210_w = S.Task('c210_w', length=1, delay_cost=1)
@@ -208,7 +196,6 @@ def solve():
 
 	c211 = S.Task('c211', length=1, delay_cost=1)
 	c211 += alt(MAS)
-
 	S += 0<c211
 
 	c211_w = S.Task('c211_w', length=1, delay_cost=1)
@@ -223,7 +210,7 @@ def solve():
 	c211_mem1 += MAIN_MEM_r[1]
 	S += c211_mem1 <= c211
 
-	solvers.mip.solve(S,msg=1,ratio_gap=1.01)
+	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
 
 	solution = [['hoge']*len(S.solution()[1]) for i in range(len(S.solution()))]
 	for i in range(len(S.solution())):

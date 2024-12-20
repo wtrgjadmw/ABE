@@ -1,13 +1,13 @@
 from inst_template import init_insts, Fpinv_insts, Fpinv_preprocess_insts, yrecover2_insts
 
 class solutionData:
-    def __init__(self, opr1, opr2, operator, operation, start, end) -> None:
-        self.opr1 = opr1
-        self.opr2 = opr2
+    def __init__(self, operands, operator, operation, start, end, csel_flag=0) -> None:
+        self.operands = operands
         self.operator = operator
         self.operation = operation
         self.start = start
         self.end = end
+        self.csel_flag = csel_flag
 
 class ALUInstruction:
     def __init__(self, MMnum, MASnum) -> None:
@@ -34,6 +34,9 @@ class ALUInstruction:
             self.inst_dict["MAS{}_WRITE".format(i)] = 0
             self.inst_dict["MAS{}_WE".format(i)] = 0
 
+        self.inst_dict["INV"] = 0
+        self.inst_dict["CSL_MODE"] = 0
+        self.inst_dict["CSL_START"] = 0
 
         self.inst_dict["MAIN_READA"] = 0
         self.inst_dict["MAIN_READB"] = 0
@@ -58,12 +61,16 @@ class ALUInstruction:
             is_masked_addr = mask and 0 <= raddr <= 3
             self.inst_dict["MAIN_READ_MASK{}".format(read_port)] = 1 if is_masked_addr else 0
 
-    def set_operator_init(self, operator, operation, operand_index, mux):
+    def set_operator_init(self, solution_data: solutionData, operand_index, mux):
+        if solution_data.operation == "CSEL":
+            self.inst_dict["CSL_START"] = 1
+            self.inst_dict["CSL_MODE"] = solution_data.csel_flag
+            return
         suffix = self.index2alphabet(operand_index)
-        self.inst_dict["{}_MUX{}".format(operator, suffix)] = mux
-        self.inst_dict["{}_VAL".format(operator)] = 1
-        if "MAS" in operator:
-            self.inst_dict["{}_ISSUB".format(operator)] = 1 if "SUB" == operation else 0
+        self.inst_dict["{}_MUX{}".format(solution_data.operator, suffix)] = mux
+        self.inst_dict["{}_VAL".format(solution_data.operator)] = 1
+        if "MAS" in solution_data.operator:
+            self.inst_dict["{}_ISSUB".format(solution_data.operator)] = 1 if "SUB" == solution_data.operation else 0
 
     def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
         self.inst_dict["{}_WRITE".format(ram_type)] = waddr

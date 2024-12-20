@@ -1,6 +1,6 @@
 from split_sche import make_split_scheduling
 from io import TextIOWrapper
-import sys, csv, time, os, argparse, importlib
+import sys, csv, time, os, argparse, importlib, re
 from formula_data import formulaData
 
 args = sys.argv
@@ -20,15 +20,12 @@ def read_formula_csv(filename) -> list[formulaData]:
     f_read = open(filename, "r")
     formulas = []
     for line in csv.reader(f_read):
-        if len(line) > 0 and line[0][0] == "#":
+        if (len(line) > 0 and line[0][0] == "#") or len(line) < 3:
             continue
         if line[-1] == "CSEL":
-            formula = formulaData(operands=line[1:4], result=line[0], type = line[-1])
+            formula = formulaData(operands=line[1:4], result=line[0], type=line[-1], csel_flag=line[4])
         else:
-            if line[1] == line[2]:
-                formula = formulaData(operands=[line[1]], result=line[0], type = line[-1])
-            else:
-                formula = formulaData(operands=line[1:3], result=line[0], type = line[-1])
+            formula = formulaData(operands=line[1:3], result=line[0], type=line[-1])
         formulas.append(formula)
     f_read.close()
     return formulas
@@ -82,51 +79,46 @@ def make_mem_task_definition(
     for i in range(len(target_formula.operands)):
         operand = target_formula.operands[i]
         mem_value_name = "{0}_mem{1}".format(target_formula.result, i)
+        f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
         if operand in input_value:
-            f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
             f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, 0 if target_formula.type == "CSEL" else i))
         else:
             prev_formula = find_prev_formula(formulas, operand)
             if prev_formula is None:
                 raise Exception("can't find previous formula")
             prev_type = prev_formula.type
-            if target_formula.type == "CSEL" and prev_type != "CSEL":
-                f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
-                f_write.write("\tS += {0} < {1}\n".format(pre_end_time + 2, mem_value_name))
-            else:
-                pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
-                f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
-                # if prev_type == "INV":
-                #     f_write.write("\tS += {0} < {1}\n".format(operand, target_formula.result))
-                #     continue
-                if prev_type == "CSEL":
-                    f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
-                    f_write.write("\tS += {0} < {1}\n".format(pre_end_time + 6, mem_value_name))
-                if prev_type == "MUL":
-                    if pre_resource is None:
-                        f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
-                        for j in range(MMnum):
-                            f_write.write("\tS += ({0}*MM[{3}])-1 < {1}_mem{2}*MM_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
-                    else:
-                        f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
-                        f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
-                elif prev_type == "ADD" or prev_type == "SUB":
-                    if pre_resource is None:
-                        f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
-                        for j in range(MASnum):
-                            f_write.write("\tS += ({0}*MAS[{3}])-1 < {1}_mem{2}*MAS_MEM[{4}]\n".format(operand, target_formula.result, i, j, j*2+i))
-                    else:
-                        f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
-                        f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
+            pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
             if target_formula.type == "CSEL":
-                f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result + "+ {}".format(i), mem_value_name))
-            else:
-                f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result, mem_value_name))
+                f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
+                f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
+            elif prev_type == "CSEL":
+                f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
+                f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
+            elif prev_type == "MUL":
+                if pre_resource is None:
+                    f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
+                    for j in range(MMnum):
+                        f_write.write("\tS += ({0}*MM[{2}])-1 < {1}*MM_MEM[{3}]\n".format(operand, mem_value_name, j, j*2+i))
+                else:
+                    f_write.write("\t{0} += MM_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                    f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
+            elif prev_type == "ADD" or prev_type == "SUB":
+                if pre_resource is None:
+                    f_write.write("\t{0} += alt(MAS_MEM)\n".format(mem_value_name))
+                    for j in range(MASnum):
+                        f_write.write("\tS += ({0}*MAS[{2}])-1 < {1}*MAS_MEM[{3}]\n".format(operand, mem_value_name, j, j*2+i))
+                else:
+                    f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
+                    f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
+        if target_formula.type == "CSEL":
+            f_write.write("\tS += {0} <= {1}\n\n".format(mem_value_name + "+ {}".format(2-i), target_formula.result))
+        else:
+            f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result, mem_value_name))
         mem_table[mem_value_name] = operand
 
 
-def find_mistake(formulas: list[formulaData], mem_table_list, output_value, split_ope: list[list[formulaData]], depth: int, pre_sche_result):
-    mistaken_formulas = []
+def find_mistake(formulas: list[formulaData], mem_table_list, mul_stage, add_stage, output_value, split_ope: list[list[formulaData]], depth: int, pre_sche_result):
+    mistaken_formulas: list[formulaData] = []
     for formula in split_ope[depth]:
         is_exist = False
         sub_value_results = []
@@ -135,7 +127,9 @@ def find_mistake(formulas: list[formulaData], mem_table_list, output_value, spli
         sub_values = {key: False for key, value in mem_table_list[depth].items() if task in key}
         if task in output_value:
             sub_values["{}_w".format(task)] = False
-        if formula.type == "MUL":
+        if formula.type == "MUL" and mul_stage > 1:
+            sub_values["{}_in".format(task)] = False
+        if (formula.type == "ADD" or formula.type == "SUB") and add_stage > 1:
             sub_values["{}_in".format(task)] = False
 
         for sol in pre_sche_result:
@@ -158,12 +152,16 @@ def find_mistake(formulas: list[formulaData], mem_table_list, output_value, spli
             min_finish_time, max_finish_time = find_next_formula(task, formulas, pre_sche_result)
             formula.set_limit_time(min_finish_time)
             mistaken_formulas.append(formula)
-    print(mistaken_formulas)
+    # print(mistaken_formulas)
+    for formula in mistaken_formulas:
+        formula.print()
+    many_mistakes = False
     if depth+1 >= len(split_ope):
         split_ope.append(mistaken_formulas)
+        many_mistakes = True
     else:
         split_ope[depth+1] = mistaken_formulas + split_ope[depth+1]
-    return pre_sche_result, split_ope
+    return pre_sche_result, split_ope, many_mistakes
 
 
 
@@ -195,13 +193,16 @@ def make_pyschedule(
     pre_cycle = 0
     if pre_sche_result != []:
         pre_cycle = int(pre_sche_result[-1][3])
-    f_write.write("\thorizon = {0}\n".format(max(pre_cycle + 90, input_num // 2 + 50)))
+    f_write.write("\thorizon = {0}\n".format(max(pre_cycle + 120, input_num // 2 + 50)))
 
     f_write.write('\tS = Scenario("schedule{}", horizon=horizon)\n'.format(depth))
 
     f_write.write("\n\t# resource\n")
     f_write.write("\tMM = S.Resources('MM', num={0}, size={1})\n".format(MMnum, MMstage))
-    f_write.write("\tMM_in = S.Resources('MM_in', num={0})\n".format(MMnum))
+    if MMstage != 1:
+        f_write.write("\tMM_in = S.Resources('MM_in', num={0})\n".format(MMnum))
+    if MASstage != 1:
+        f_write.write("\tMAS_in = S.Resources('MAS_in', num={0})\n".format(MASnum))
     f_write.write("\tCSEL = S.Resource('CSEL')\n")
     # f_write.write("\tINV = S.Resource('INV')\n")
     f_write.write(
@@ -222,7 +223,7 @@ def make_pyschedule(
     f_write.write("\tMAIN_MEM_w = S.Resource('MAIN_MEM_w', size=1)\n")
     f_write.write("\tMAIN_MEM_r = S.Resources('MAIN_MEM_r', num=2)\n")
 
-    multi_resources = ["MM", "MM_in", "MAS", "MM_MEM", "MAS_MEM", "MAIN_MEM_r"]
+    multi_resources = ["MM", "MM_in", "MAS", "MAS_in", "MM_MEM", "MAS_MEM", "MAIN_MEM_r"]
     # single_resources = ["INV", "CSEL", "MAIN_MEM_w"]
     single_resources = ["CSEL", "MAIN_MEM_w"]
 
@@ -240,8 +241,12 @@ def make_pyschedule(
         if pre[1] in single_resources:
             f_write.write("\t{0} += {1}\n\n".format(task, pre[1]))
         else:
-            resource = pre[1][:-1]
-            resource_num = pre[1][-1]
+            num_re_str = r"\d{1,2}"
+            m = re.search(num_re_str, pre[1])
+            if m is None:
+                raise Exception("%s is invalid operator"%pre[1])
+            resource = pre[1][:m.start()]
+            resource_num = m.group()
             f_write.write("\t{0} += {1}[{2}]\n\n".format(task, resource, resource_num))
 
     f_write.write("\n\t# new tasks\n")
@@ -249,24 +254,29 @@ def make_pyschedule(
     for target_formula in split_ope[depth]:
         if target_formula.type == "MUL":
             f_write.write(
-                "\t{0}_in = S.Task('{0}_in', length=1, delay_cost=1)\n".format(target_formula.result)
-            )
-            f_write.write("\t" + target_formula.result + "_in += alt(MM_in)\n")
-            f_write.write(
                 "\t{0} = S.Task('{0}', length={1}, delay_cost=1)\n".format(target_formula.result, MMstage)
             )
             f_write.write("\t" + target_formula.result + " += alt(MM)\n")
-            f_write.write("\tS += {0}>={0}_in\n\n".format(target_formula.result))
+            if MMstage != 1:
+                f_write.write(
+                "\t{0}_in = S.Task('{0}_in', length=1, delay_cost=1)\n".format(target_formula.result)
+            )
+                f_write.write("\t" + target_formula.result + "_in += alt(MM_in)\n")
+                for i in range(mul_num):
+                    f_write.write("\tS += {0}_in*MM_in[{1}]<={0}*MM[{1}]\n".format(target_formula.result, i))
+            
         elif target_formula.type == "ADD" or target_formula.type == "SUB":
             f_write.write(
                 "\t{0} = S.Task('{0}', length={1}, delay_cost=1)\n".format(target_formula.result, MASstage)
             )
-            f_write.write("\t" + target_formula.result + " += alt(MAS)\n\n")
-        # elif target_formula.type == "INV":
-        #     f_write.write(
-        #         "\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(target_formula.result)
-        #     )
-        #     f_write.write("\t" + target_formula.result + " += alt(INV)\n\n")
+            f_write.write("\t" + target_formula.result + " += alt(MAS)\n")
+            if MASstage != 1:
+                f_write.write(
+                "\t{0}_in = S.Task('{0}_in', length=1, delay_cost=1)\n".format(target_formula.result)
+            )
+                f_write.write("\t" + target_formula.result + "_in += alt(MAS_in)\n")
+                for i in range(add_num):
+                    f_write.write("\tS += {0}_in*MAS_in[{1}]<={0}*MAS[{1}]\n\n".format(target_formula.result, i))
 
         elif target_formula.type == "CSEL":
             f_write.write(
@@ -276,22 +286,27 @@ def make_pyschedule(
         else:
             raise Exception("ERROR: invalid operand: " + target_formula.type)
         if target_formula.result in output_value:
-            if "new_" in target_formula.result:
-                min_finish_time, max_finish_time = find_next_formula(
-                    target_formula.result[4:], formulas, pre_sche_result
-                )
+            if target_formula.type == "CSEL":
+                f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(target_formula.result))
+                f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(target_formula.result))
+                f_write.write("\tS += {0}+2 <= {0}_w\n\n".format(target_formula.result))
             else:
-                min_finish_time_1, max_finish_time_1 = find_next_formula(
-                    "a{}".format(target_formula.result[1:]), formulas, pre_sche_result
-                )
-                min_finish_time_2, max_finish_time_2 = find_next_formula(
-                    "b{}".format(target_formula.result[1:]), formulas, pre_sche_result
-                )
-                max_finish_time = max(max_finish_time_1, max_finish_time_2)
-            f_write.write("\tS += {}<{}\n\n".format(max_finish_time, target_formula.result))
-            f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(target_formula.result))
-            f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(target_formula.result))
-            f_write.write("\tS += {0} <= {0}_w\n\n".format(target_formula.result))
+                if "new_" in target_formula.result:
+                    min_finish_time, max_finish_time = find_next_formula(
+                        target_formula.result[4:], formulas, pre_sche_result
+                    )
+                else:
+                    min_finish_time_1, max_finish_time_1 = find_next_formula(
+                        "a{}".format(target_formula.result[1:]), formulas, pre_sche_result
+                    )
+                    min_finish_time_2, max_finish_time_2 = find_next_formula(
+                        "b{}".format(target_formula.result[1:]), formulas, pre_sche_result
+                    )
+                    max_finish_time = max(max_finish_time_1, max_finish_time_2)
+                f_write.write("\tS += {}<{}\n\n".format(max_finish_time, target_formula.result))
+                f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(target_formula.result))
+                f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(target_formula.result))
+                f_write.write("\tS += {0} <= {0}_w\n\n".format(target_formula.result))
         if target_formula.limit_time != -1:
             f_write.write("\tS += {}<{}\n\n".format(target_formula.result, target_formula.limit_time))
         make_mem_task_definition(
@@ -323,7 +338,7 @@ def make_pyschedule(
     #     "\tif(S.solution() != []):\n\t\tplotters.matplotlib.plot(S,img_filename=pic_file_name, fig_size=(cycles*0.25+3, 5))\n\n"
     # )
     f_write.write(
-        "\tif(S.solution() != []):\n\t\tplotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, 5))\n\n"
+        "\tif(S.solution() != []):\n\t\tplotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, {}))\n\n".format(add_num+mul_num)
     )
     f_write.write("\treturn solution\n\n")
     return
@@ -401,6 +416,7 @@ if __name__ == "__main__":
         # print(len(split_ope))
 
         cnt = 0
+        many_mistake = False
         while cnt < len(split_ope):
             if len(split_ope[cnt]) == 0:
                 break
@@ -423,10 +439,14 @@ if __name__ == "__main__":
             # make_pyschedule(file_name, formulas, mem_table, split_ope, pre_sche_result, i, write_file, input_value, mul_num, add_num, mul_num_list, add_num_list, input_num)
             scheduling_i = importlib.import_module("scheduling_result.{}.{}.schedule{}".format(config, algo_name, cnt))
             solution = scheduling_i.solve()
+            print(config, algo_name)
             if solution == []:
                 raise Exception("no solution found in schedule_{0}".format(cnt))
             pre_sche_result = solution
-            pre_sche_result, split_ope = find_mistake(formulas, mem_table_list, output_value, split_ope, cnt, pre_sche_result)
+            prev_many_mistake = many_mistake
+            pre_sche_result, split_ope, many_mistake = find_mistake(formulas, mem_table_list, mul_stage, add_stage, output_value, split_ope, cnt, pre_sche_result)
+            if many_mistake & prev_many_mistake:
+                raise Exception("scheduling is not finished: lots of mistakes".format(cnt))
             cnt += 1
 
         end_time = time.perf_counter()
@@ -443,10 +463,8 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    # for algo_name in ["SSWU_BEFORE_EXP"]:
-    #     exec_split_scheduling(algo_name)
-    for algo_name in ["EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "INV", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_0", "ISOGENY", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP"]:
-    # for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "INV", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY"]:
+    # for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_LADDERMUL", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
+    for algo_name in ["MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
         exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):

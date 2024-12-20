@@ -124,7 +124,7 @@ class schedulingData:
             if "_mem" not in value_name:
                 formula = self.find_formula(value_name)
                 self.solution_data_list[value_name] = solutionData(
-                    opr1=formula[2], opr2=formula[3], operator=operator_name, operation=formula[1], start=start_time, end=end_time)
+                    operands=formula[1], operator=operator_name, operation=formula[2], start=start_time, end=end_time, csel_flag=formula[3])
         self.operator_init_seq = [[] for i in range(self.seq_finish_time)]
         self.inst_list = [ALUInstruction(self.MMnum, self.MASnum) for i in range(self.seq_finish_time)]
 
@@ -178,8 +178,8 @@ class schedulingData:
     def set_operator_inst(self, value_name: str, data: solutionData):
         time = data.start
         operator = data.operator
-        for i in range(2):
-            operand_name = data.opr1 if i == 0 else data.opr2
+        for i in range(len(data.operands)):
+            operand_name = data.operands[i]
             if operand_name in self.input:
                 # print(value_name, time, operand_name, self.const_addr_list[operand_name])
                 read_port = self.ram_num_list["{}_mem{}".format(value_name, i)]
@@ -188,7 +188,7 @@ class schedulingData:
                     read_port = read_port,
                     raddr=self.const_addr_list[operand_name],
                     mask=self.is_ladder)
-                self.inst_list[time].set_operator_init(operator=operator, operation=data.operation, operand_index=i, mux=self.mux_dict["MAIN_MEM{}".format(read_port)])
+                self.inst_list[time].set_operator_init(solution_data=data, operand_index=i, mux=self.mux_dict["MAIN_MEM{}".format(read_port)])
                 continue
             operand_data = self.solution_data_list[operand_name]
             if time > operand_data.end+1:

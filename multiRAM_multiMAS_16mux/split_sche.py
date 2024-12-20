@@ -26,6 +26,11 @@ def make_split_scheduling(formulas: list[formulaData]):
                 input_num += 1
             if (operand in outputs) and (re.fullmatch(r"c[0-2]*", operand) is None):
                 outputs.remove(operand)
+    for s in formulas:
+        if s.type == "CSEL":
+            outputs += s.operands
+            if s.result not in outputs:
+                outputs.append(s.result)
 
     input_first = copy.deepcopy(inputs)
     knows = inputs
