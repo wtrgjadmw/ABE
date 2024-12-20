@@ -17,6 +17,7 @@ try:
         print(all_results_df)
 except Exception as e:
     print(e)
+    
 finally:
     all_results_df.to_csv("./test.csv")
 
