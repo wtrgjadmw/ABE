@@ -463,8 +463,8 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    # for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_LADDERMUL", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
-    for algo_name in ["CONJ", "FROB", "EP_LADDERMUL"]:
+    for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_LADDERMUL", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
+    # for algo_name in ["CONJ", "FROB", "EP_LADDERMUL"]:
         exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):
