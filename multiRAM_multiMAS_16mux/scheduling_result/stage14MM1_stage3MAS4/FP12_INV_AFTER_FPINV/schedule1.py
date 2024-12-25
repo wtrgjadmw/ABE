@@ -139,7 +139,7 @@ def solve():
 
 	c0_t20_in = S.Task('c0_t20_in', length=1, delay_cost=1)
 	S += c0_t20_in >= 7
-	c0_t20_in += MAS_in[0]
+	c0_t20_in += MAS_in[1]
 
 	c0_t20_mem0 = S.Task('c0_t20_mem0', length=1, delay_cost=1)
 	S += c0_t20_mem0 >= 7
@@ -159,7 +159,7 @@ def solve():
 
 	c0_t20 = S.Task('c0_t20', length=3, delay_cost=1)
 	S += c0_t20 >= 8
-	c0_t20 += MAS[0]
+	c0_t20 += MAS[1]
 
 	c2_t4_t2_in = S.Task('c2_t4_t2_in', length=1, delay_cost=1)
 	S += c2_t4_t2_in >= 8
@@ -215,7 +215,7 @@ def solve():
 
 	c0_t4_t2_mem0 = S.Task('c0_t4_t2_mem0', length=1, delay_cost=1)
 	S += c0_t4_t2_mem0 >= 10
-	c0_t4_t2_mem0 += MAS_MEM[0]
+	c0_t4_t2_mem0 += MAS_MEM[2]
 
 	c0_t4_t2_mem1 = S.Task('c0_t4_t2_mem1', length=1, delay_cost=1)
 	S += c0_t4_t2_mem1 >= 10
@@ -897,7 +897,7 @@ def solve():
 	c0_t4_t0_in += alt(MM_in)
 	S += c0_t4_t0_in*MM_in[0]<=c0_t4_t0*MM[0]
 	c0_t4_t0_mem0 = S.Task('c0_t4_t0_mem0', length=1, delay_cost=1)
-	c0_t4_t0_mem0 += MAS_MEM[0]
+	c0_t4_t0_mem0 += MAS_MEM[2]
 	S += 10 < c0_t4_t0_mem0
 	S += c0_t4_t0_mem0 <= c0_t4_t0
 
@@ -1191,7 +1191,7 @@ def solve():
 
 	cycles = int(solution[-1][3])
 
-	pic_file_name = "/home/mfukuda/ABE/multiRAM_multiMAS_16mux/scheduling_result/stage14MM1_stage3MAS4/FP12_INV_AFTER_FPINV/schedule1.png"
+	pic_file_name = "/mnt/rose/usr1/fukuda/ABE/multiRAM_multiMAS_16mux/scheduling_result/stage14MM1_stage3MAS4/FP12_INV_AFTER_FPINV/schedule1.png"
 	if(S.solution() != []):
 		plotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, 5))
 

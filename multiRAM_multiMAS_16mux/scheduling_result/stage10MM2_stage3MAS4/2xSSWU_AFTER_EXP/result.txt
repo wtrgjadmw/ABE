@@ -1,0 +1,2 @@
+input = ['UV3_exp0', 'UV0', 'UV3_exp1', 'UV1', 'Z0', 'Z1', 'V0', 'V1', 'xit20', 'N0', 'xit21', 'N1', 't20', 't0', 't21', 't1', 'sqrt_negxi3', 'U0', 'U1', 'zero']
+output = ['X0', 'X1', 'Y0', 'Y1', 'alpha2V_U0', 'xit2N0', 'N0', 'alpha2V_U1', 'xit2N1', 'N1', 'alpha2V_U0', 'y20', 'alphaD0', 'y0', 'alpha2V_U1', 'y21', 'alphaD1', 'y1', 't0', 'y0', 'y_alt0', 't1', 'y1', 'y_alt1']
