@@ -61,37 +61,37 @@ def solve():
 	S += k2_14_Z1 >= 2
 	k2_14_Z1 += MM[0]
 
+	NX0_in = S.Task('NX0_in', length=1, delay_cost=1)
+	S += NX0_in >= 3
+	NX0_in += MM_in[0]
+
+	NX0_mem0 = S.Task('NX0_mem0', length=1, delay_cost=1)
+	S += NX0_mem0 >= 3
+	NX0_mem0 += MAIN_MEM_r[0]
+
+	NX0_mem1 = S.Task('NX0_mem1', length=1, delay_cost=1)
+	S += NX0_mem1 >= 3
+	NX0_mem1 += MAIN_MEM_r[1]
+
 	NY0 = S.Task('NY0', length=8, delay_cost=1)
 	S += NY0 >= 3
 	NY0 += MM[0]
 
+	NX0 = S.Task('NX0', length=8, delay_cost=1)
+	S += NX0 >= 4
+	NX0 += MM[0]
+
 	k0_10_Z1_in = S.Task('k0_10_Z1_in', length=1, delay_cost=1)
-	S += k0_10_Z1_in >= 3
+	S += k0_10_Z1_in >= 4
 	k0_10_Z1_in += MM_in[0]
 
 	k0_10_Z1_mem0 = S.Task('k0_10_Z1_mem0', length=1, delay_cost=1)
-	S += k0_10_Z1_mem0 >= 3
+	S += k0_10_Z1_mem0 >= 4
 	k0_10_Z1_mem0 += MAIN_MEM_r[0]
 
 	k0_10_Z1_mem1 = S.Task('k0_10_Z1_mem1', length=1, delay_cost=1)
-	S += k0_10_Z1_mem1 >= 3
+	S += k0_10_Z1_mem1 >= 4
 	k0_10_Z1_mem1 += MAIN_MEM_r[1]
-
-	NX0_in = S.Task('NX0_in', length=1, delay_cost=1)
-	S += NX0_in >= 4
-	NX0_in += MM_in[0]
-
-	NX0_mem0 = S.Task('NX0_mem0', length=1, delay_cost=1)
-	S += NX0_mem0 >= 4
-	NX0_mem0 += MAIN_MEM_r[0]
-
-	NX0_mem1 = S.Task('NX0_mem1', length=1, delay_cost=1)
-	S += NX0_mem1 >= 4
-	NX0_mem1 += MAIN_MEM_r[1]
-
-	k0_10_Z1 = S.Task('k0_10_Z1', length=8, delay_cost=1)
-	S += k0_10_Z1 >= 4
-	k0_10_Z1 += MM[0]
 
 	DY0_in = S.Task('DY0_in', length=1, delay_cost=1)
 	S += DY0_in >= 5
@@ -105,9 +105,9 @@ def solve():
 	S += DY0_mem1 >= 5
 	DY0_mem1 += MAIN_MEM_r[1]
 
-	NX0 = S.Task('NX0', length=8, delay_cost=1)
-	S += NX0 >= 5
-	NX0 += MM[0]
+	k0_10_Z1 = S.Task('k0_10_Z1', length=8, delay_cost=1)
+	S += k0_10_Z1 >= 5
+	k0_10_Z1 += MM[0]
 
 	DX0_in = S.Task('DX0_in', length=1, delay_cost=1)
 	S += DX0_in >= 6
@@ -289,53 +289,53 @@ def solve():
 	S += DX1_ >= 17
 	DX1_ += MAS[0]
 
-	k0_8_Z3_in = S.Task('k0_8_Z3_in', length=1, delay_cost=1)
-	S += k0_8_Z3_in >= 17
-	k0_8_Z3_in += MM_in[0]
-
-	k0_8_Z3_mem0 = S.Task('k0_8_Z3_mem0', length=1, delay_cost=1)
-	S += k0_8_Z3_mem0 >= 17
-	k0_8_Z3_mem0 += MAIN_MEM_r[0]
-
-	k0_8_Z3_mem1 = S.Task('k0_8_Z3_mem1', length=1, delay_cost=1)
-	S += k0_8_Z3_mem1 >= 17
-	k0_8_Z3_mem1 += MM_MEM[1]
-
-	k0_8_Z3 = S.Task('k0_8_Z3', length=8, delay_cost=1)
-	S += k0_8_Z3 >= 18
-	k0_8_Z3 += MM[0]
-
 	k1_8_Z3_in = S.Task('k1_8_Z3_in', length=1, delay_cost=1)
-	S += k1_8_Z3_in >= 18
+	S += k1_8_Z3_in >= 17
 	k1_8_Z3_in += MM_in[0]
 
 	k1_8_Z3_mem0 = S.Task('k1_8_Z3_mem0', length=1, delay_cost=1)
-	S += k1_8_Z3_mem0 >= 18
+	S += k1_8_Z3_mem0 >= 17
 	k1_8_Z3_mem0 += MAIN_MEM_r[0]
 
 	k1_8_Z3_mem1 = S.Task('k1_8_Z3_mem1', length=1, delay_cost=1)
-	S += k1_8_Z3_mem1 >= 18
+	S += k1_8_Z3_mem1 >= 17
 	k1_8_Z3_mem1 += MM_MEM[1]
 
 	Z_exp4_in = S.Task('Z_exp4_in', length=1, delay_cost=1)
-	S += Z_exp4_in >= 19
+	S += Z_exp4_in >= 18
 	Z_exp4_in += MM_in[0]
 
 	Z_exp4_mem0 = S.Task('Z_exp4_mem0', length=1, delay_cost=1)
-	S += Z_exp4_mem0 >= 19
+	S += Z_exp4_mem0 >= 18
 	Z_exp4_mem0 += MM_MEM[0]
 
 	Z_exp4_mem1 = S.Task('Z_exp4_mem1', length=1, delay_cost=1)
-	S += Z_exp4_mem1 >= 19
+	S += Z_exp4_mem1 >= 18
 	Z_exp4_mem1 += MAIN_MEM_r[1]
 
 	k1_8_Z3 = S.Task('k1_8_Z3', length=8, delay_cost=1)
-	S += k1_8_Z3 >= 19
+	S += k1_8_Z3 >= 18
 	k1_8_Z3 += MM[0]
 
 	Z_exp4 = S.Task('Z_exp4', length=8, delay_cost=1)
-	S += Z_exp4 >= 20
+	S += Z_exp4 >= 19
 	Z_exp4 += MM[0]
+
+	k0_8_Z3_in = S.Task('k0_8_Z3_in', length=1, delay_cost=1)
+	S += k0_8_Z3_in >= 19
+	k0_8_Z3_in += MM_in[0]
+
+	k0_8_Z3_mem0 = S.Task('k0_8_Z3_mem0', length=1, delay_cost=1)
+	S += k0_8_Z3_mem0 >= 19
+	k0_8_Z3_mem0 += MAIN_MEM_r[0]
+
+	k0_8_Z3_mem1 = S.Task('k0_8_Z3_mem1', length=1, delay_cost=1)
+	S += k0_8_Z3_mem1 >= 19
+	k0_8_Z3_mem1 += MM_MEM[1]
+
+	k0_8_Z3 = S.Task('k0_8_Z3', length=8, delay_cost=1)
+	S += k0_8_Z3 >= 20
+	k0_8_Z3 += MM[0]
 
 	k3_13_Z3_in = S.Task('k3_13_Z3_in', length=1, delay_cost=1)
 	S += k3_13_Z3_in >= 20
@@ -394,7 +394,7 @@ def solve():
 	S += Z_exp5_in*MM_in[0]<=Z_exp5*MM[0]
 	Z_exp5_mem0 = S.Task('Z_exp5_mem0', length=1, delay_cost=1)
 	Z_exp5_mem0 += MM_MEM[0]
-	S += 27 < Z_exp5_mem0
+	S += 26 < Z_exp5_mem0
 	S += Z_exp5_mem0 <= Z_exp5
 
 	Z_exp5_mem1 = S.Task('Z_exp5_mem1', length=1, delay_cost=1)
@@ -434,7 +434,7 @@ def solve():
 
 	k0_7_Z4_mem1 = S.Task('k0_7_Z4_mem1', length=1, delay_cost=1)
 	k0_7_Z4_mem1 += MM_MEM[1]
-	S += 27 < k0_7_Z4_mem1
+	S += 26 < k0_7_Z4_mem1
 	S += k0_7_Z4_mem1 <= k0_7_Z4
 
 	DX1 = S.Task('DX1', length=8, delay_cost=1)
@@ -462,7 +462,7 @@ def solve():
 
 	k1_7_Z4_mem1 = S.Task('k1_7_Z4_mem1', length=1, delay_cost=1)
 	k1_7_Z4_mem1 += MM_MEM[1]
-	S += 27 < k1_7_Z4_mem1
+	S += 26 < k1_7_Z4_mem1
 	S += k1_7_Z4_mem1 <= k1_7_Z4
 
 	NY2_ = S.Task('NY2_', length=2, delay_cost=1)
@@ -498,7 +498,7 @@ def solve():
 
 	k2_11_Z4_mem1 = S.Task('k2_11_Z4_mem1', length=1, delay_cost=1)
 	k2_11_Z4_mem1 += MM_MEM[1]
-	S += 27 < k2_11_Z4_mem1
+	S += 26 < k2_11_Z4_mem1
 	S += k2_11_Z4_mem1 <= k2_11_Z4
 
 	DY1 = S.Task('DY1', length=8, delay_cost=1)
@@ -526,7 +526,7 @@ def solve():
 
 	k3_12_Z4_mem1 = S.Task('k3_12_Z4_mem1', length=1, delay_cost=1)
 	k3_12_Z4_mem1 += MM_MEM[1]
-	S += 27 < k3_12_Z4_mem1
+	S += 26 < k3_12_Z4_mem1
 	S += k3_12_Z4_mem1 <= k3_12_Z4
 
 	Z_exp6 = S.Task('Z_exp6', length=8, delay_cost=1)
@@ -593,7 +593,7 @@ def solve():
 
 	DX2__mem1 = S.Task('DX2__mem1', length=1, delay_cost=1)
 	DX2__mem1 += MM_MEM[1]
-	S += 26 < DX2__mem1
+	S += 25 < DX2__mem1
 	S += DX2__mem1 <= DX2_
 
 	k1_6_Z5 = S.Task('k1_6_Z5', length=8, delay_cost=1)
@@ -710,7 +710,7 @@ def solve():
 
 	NX3__mem1 = S.Task('NX3__mem1', length=1, delay_cost=1)
 	NX3__mem1 += MM_MEM[1]
-	S += 25 < NX3__mem1
+	S += 27 < NX3__mem1
 	S += NX3__mem1 <= NX3_
 
 	k0_5_Z6 = S.Task('k0_5_Z6', length=8, delay_cost=1)
@@ -1131,7 +1131,7 @@ def solve():
 
 	cycles = int(solution[-1][3])
 
-	pic_file_name = "/home/mfukuda/ABE/multiRAM_multiMAS_16mux/scheduling_result/stage8MM1_stage2MAS4/ISOGENY/schedule1.png"
+	pic_file_name = "/mnt/rose/usr1/fukuda/ABE/multiRAM_multiMAS_16mux/scheduling_result/stage8MM1_stage2MAS4/ISOGENY/schedule1.png"
 	if(S.solution() != []):
 		plotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, 5))
 
