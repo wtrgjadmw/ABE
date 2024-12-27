@@ -9,7 +9,7 @@ def solve():
 	MM = S.Resources('MM', num=1, size=7)
 	MM_in = S.Resources('MM_in', num=1)
 	MAS_in = S.Resources('MAS_in', num=5)
-	CSEL = S.Resource('CSEL')
+	CSEL = S.Resources('CSEL', num=1)
 	MAS = S.Resources('MAS', num=5, size=2, periods=range(1, horizon))
 	MM_MEM = S.Resources('MM_MEM', num=2)
 	MAS_MEM = S.Resources('MAS_MEM', num=10)
@@ -343,7 +343,7 @@ def solve():
 
 	X1 = S.Task('X1', length=3, delay_cost=1)
 	S += X1 >= 29
-	X1 += CSEL
+	X1 += CSEL[0]
 
 	y1_mem0 = S.Task('y1_mem0', length=1, delay_cost=1)
 	S += y1_mem0 >= 29
@@ -371,7 +371,7 @@ def solve():
 
 	y1 = S.Task('y1', length=3, delay_cost=1)
 	S += y1 >= 32
-	y1 += CSEL
+	y1 += CSEL[0]
 
 	y0_mem1 = S.Task('y0_mem1', length=1, delay_cost=1)
 	S += y0_mem1 >= 33
@@ -387,7 +387,7 @@ def solve():
 
 	y0 = S.Task('y0', length=3, delay_cost=1)
 	S += y0 >= 35
-	y0 += CSEL
+	y0 += CSEL[0]
 
 	y1_w = S.Task('y1_w', length=1, delay_cost=1)
 	S += y1_w >= 37
@@ -431,7 +431,7 @@ def solve():
 
 	Y1 = S.Task('Y1', length=3, delay_cost=1)
 	S += Y1 >= 43
-	Y1 += CSEL
+	Y1 += CSEL[0]
 
 	Y1_w = S.Task('Y1_w', length=1, delay_cost=1)
 	S += Y1_w >= 48
@@ -489,3 +489,46 @@ def solve():
 	S += y_alt0_mem0 <= y_alt0
 
 	y_alt0_mem1 = S.Task('y_alt0_mem1', length=1, delay_cost=1)
+	y_alt0_mem1 += MAIN_MEM_r[1]
+	S += y0_w < y_alt0_mem1
+	S += y_alt0_mem1 <= y_alt0
+
+	Y0 = S.Task('Y0', length=3, delay_cost=1)
+	Y0 += alt(CSEL)
+
+	Y0_w = S.Task('Y0_w', length=1, delay_cost=1)
+	Y0_w += alt(MAIN_MEM_w)
+	S += Y0+2 <= Y0_w
+
+	S += Y0<1000
+
+	Y0_mem0 = S.Task('Y0_mem0', length=1, delay_cost=1)
+	Y0_mem0 += MAIN_MEM_r[0]
+	S += Y0_mem0+ 2 <= Y0
+
+	Y0_mem1 = S.Task('Y0_mem1', length=1, delay_cost=1)
+	Y0_mem1 += MAIN_MEM_r[0]
+	S += y0_w < Y0_mem1
+	S += Y0_mem1+ 1 <= Y0
+
+	Y0_mem2 = S.Task('Y0_mem2', length=1, delay_cost=1)
+	Y0_mem2 += MAIN_MEM_r[0]
+	S += y_alt0_w < Y0_mem2
+	S += Y0_mem2+ 0 <= Y0
+
+	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
+
+	solution = [['hoge']*len(S.solution()[1]) for i in range(len(S.solution()))]
+	for i in range(len(S.solution())):
+		for j in range(len(S.solution()[i])):
+			solution[i][j]=str(S.solution()[i][j])
+	print(solution)
+
+	cycles = int(solution[-1][3])
+
+	pic_file_name = "/mnt/rose/usr1/fukuda/ABE/multiRAM_multiMAS_16mux/scheduling_result/stage7MM1_stage2MAS5/2xSSWU_AFTER_EXP/schedule1.png"
+	if(S.solution() != []):
+		plotters.matplotlib.plot(S,img_filename=pic_file_name, show_task_labels=False, fig_size=(cycles*0.25+3, 6))
+
+	return solution
+

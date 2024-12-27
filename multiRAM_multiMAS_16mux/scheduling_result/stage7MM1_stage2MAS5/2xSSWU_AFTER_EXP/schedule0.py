@@ -9,7 +9,7 @@ def solve():
 	MM = S.Resources('MM', num=1, size=7)
 	MM_in = S.Resources('MM_in', num=1)
 	MAS_in = S.Resources('MAS_in', num=5)
-	CSEL = S.Resource('CSEL')
+	CSEL = S.Resources('CSEL', num=1)
 	MAS = S.Resources('MAS', num=5, size=2, periods=range(1, horizon))
 	MM_MEM = S.Resources('MM_MEM', num=2)
 	MAS_MEM = S.Resources('MAS_MEM', num=10)
