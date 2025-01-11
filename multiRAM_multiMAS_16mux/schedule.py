@@ -69,6 +69,7 @@ def find_prev_resource(pre_sche_result, operand):
 def make_mem_task_definition(
         f_write: TextIOWrapper,
         input_value,
+        output_value,
         pre_sche_result,
         formulas,
         mem_table,
@@ -82,19 +83,21 @@ def make_mem_task_definition(
         f_write.write("\t{0} = S.Task('{0}', length=1, delay_cost=1)\n".format(mem_value_name))
         if operand in input_value:
             f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, 0 if target_formula.type == "CSEL" else i))
+            if operand in output_value:
+                f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
         else:
             prev_formula = find_prev_formula(formulas, operand)
             if prev_formula is None:
                 raise Exception("can't find previous formula")
             prev_type = prev_formula.type
             pre_resource, pre_resource_num, pre_end_time = find_prev_resource(pre_sche_result, operand)
-            if target_formula.type == "CSEL":
-                f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
-                f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
-            elif prev_type == "CSEL":
-                f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
-                f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
-            elif prev_type == "MUL":
+            # if target_formula.type == "CSEL":
+            #     f_write.write("\t{0} += MAIN_MEM_r[0]\n".format(mem_value_name))
+            #     f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
+            # elif prev_type == "CSEL":
+            #     f_write.write("\t{0} += MAIN_MEM_r[{1}]\n".format(mem_value_name, i))
+            #     f_write.write("\tS += {0}_w < {1}\n".format(operand, mem_value_name))
+            if prev_type == "MUL":
                 if pre_resource is None:
                     f_write.write("\t{0} += alt(MM_MEM)\n".format(mem_value_name))
                     for j in range(MMnum):
@@ -289,7 +292,7 @@ def make_pyschedule(
             if target_formula.type == "CSEL":
                 f_write.write("\t{0}_w = S.Task('{0}_w', length=1, delay_cost=1)\n".format(target_formula.result))
                 f_write.write("\t{0}_w += alt(MAIN_MEM_w)\n".format(target_formula.result))
-                f_write.write("\tS += {0}+2 <= {0}_w\n\n".format(target_formula.result))
+                f_write.write("\tS += {0}+4 <= {0}_w\n\n".format(target_formula.result))
             else:
                 if "new_" in target_formula.result:
                     min_finish_time, max_finish_time = find_next_formula(
@@ -312,6 +315,7 @@ def make_pyschedule(
         make_mem_task_definition(
             f_write,
             input_value,
+            output_value,
             pre_sche_result,
             formulas,
             tmp_mem_table,
@@ -463,8 +467,8 @@ if __name__ == "__main__":
         f.close()
         print("time = ", end_time - start_time)
 
-    for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_LADDERMUL", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
-    # for algo_name in ["CONJ", "FROB", "EP_LADDERMUL"]:
+    # for algo_name in ["CONJ", "FROB", "MUL", "EP2_ADD_w_EVAL", "EP2_DBL_w_EVAL", "SPARSE", "SQR", "SQR012345", "EP_ADD_A_0", "EP_ADD_A_ANY", "EP_DBL_A_0", "EP_DBL_A_ANY", "ISOGENY", "FP12_INV_BEFORE_FPINV", "FP12_INV_AFTER_FPINV", "2xSSWU_BEFORE_EXP", "2xSSWU_AFTER_EXP", "EP_LADDERMUL", "EP_YRECOVER", "EP2_LADDERMUL", "EP2_YRECOVER", "FP12_LADDERMUL"]:
+    for algo_name in ["2xSSWU_AFTER_EXP"]:
         exec_split_scheduling(algo_name)
 
     for filename in os.listdir("./"):
