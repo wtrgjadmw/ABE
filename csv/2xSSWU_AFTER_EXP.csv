@@ -1,7 +1,7 @@
 alpha0,UV3_exp0,UV0,MUL
 alpha1,UV3_exp1,UV1,MUL
-alphaD0,alpha0,Z_SSWU0,MUL
-alphaD1,alpha1,Z_SSWU1,MUL
+alphaD0,alpha0,Z_Hash0,MUL
+alphaD1,alpha1,Z_Hash1,MUL
 alpha20,alpha0,alpha0,MUL
 alpha21,alpha1,alpha1,MUL
 alpha2V0,alpha20,V0,MUL
@@ -16,11 +16,11 @@ y20,sqrt_negxi3,t3alphaD0,MUL
 y21,sqrt_negxi3,t3alphaD1,MUL
 alpha2V_U0,alpha2V0,U0,SUB
 alpha2V_U1,alpha2V1,U1,SUB
-X_SSWU0,alpha2V_U0,xit2N0,N0,ONE,CSEL
-X_SSWU1,alpha2V_U1,xit2N1,N1,ONE,CSEL
+X_Hash0,alpha2V_U0,xit2N0,N0,ONE,CSEL
+X_Hash1,alpha2V_U1,xit2N1,N1,ONE,CSEL
 y0,alpha2V_U0,y20,alphaD0,ONE,CSEL
 y1,alpha2V_U1,y21,alphaD1,ONE,CSEL
 y_alt0,ZERO,y0,SUB
 y_alt1,ZERO,y1,SUB
-Y_SSWU0,t0,y0,y_alt0,ZERO,CSEL
-Y_SSWU1,t1,y1,y_alt1,ZERO,CSEL
+Y_Hash0,t0,y0,y_alt0,ZERO,CSEL
+Y_Hash1,t1,y1,y_alt1,ZERO,CSEL
