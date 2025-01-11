@@ -218,8 +218,8 @@ def solve():
 	S += t3alphaD0_mem0 <= t3alphaD0
 
 	t3alphaD0_mem1 = S.Task('t3alphaD0_mem1', length=1, delay_cost=1)
-	t3alphaD0_mem1 += alt(MM_MEM)
-	S += (alphaD0*MM[0])-1 < t3alphaD0_mem1*MM_MEM[1]
+	t3alphaD0_mem1 += MAIN_MEM_r[1]
+	S += alphaD0_w < t3alphaD0_mem1
 	S += t3alphaD0_mem1 <= t3alphaD0
 
 	t3alphaD1 = S.Task('t3alphaD1', length=8, delay_cost=1)
@@ -233,8 +233,8 @@ def solve():
 	S += t3alphaD1_mem0 <= t3alphaD1
 
 	t3alphaD1_mem1 = S.Task('t3alphaD1_mem1', length=1, delay_cost=1)
-	t3alphaD1_mem1 += alt(MM_MEM)
-	S += (alphaD1*MM[0])-1 < t3alphaD1_mem1*MM_MEM[1]
+	t3alphaD1_mem1 += MAIN_MEM_r[1]
+	S += alphaD1_w < t3alphaD1_mem1
 	S += t3alphaD1_mem1 <= t3alphaD1
 
 	y20 = S.Task('y20', length=8, delay_cost=1)
@@ -319,54 +319,54 @@ def solve():
 	alpha2V_U1_mem1 += MAIN_MEM_r[1]
 	S += alpha2V_U1_mem1 <= alpha2V_U1
 
-	X0 = S.Task('X0', length=3, delay_cost=1)
-	X0 += alt(CSEL)
+	X_SSWU0 = S.Task('X_SSWU0', length=3, delay_cost=1)
+	X_SSWU0 += alt(CSEL)
 
-	X0_w = S.Task('X0_w', length=1, delay_cost=1)
-	X0_w += alt(MAIN_MEM_w)
-	S += X0+2 <= X0_w
+	X_SSWU0_w = S.Task('X_SSWU0_w', length=1, delay_cost=1)
+	X_SSWU0_w += alt(MAIN_MEM_w)
+	S += X_SSWU0+4 <= X_SSWU0_w
 
-	X0_mem0 = S.Task('X0_mem0', length=1, delay_cost=1)
-	X0_mem0 += MAIN_MEM_r[0]
-	S += alpha2V_U0_w < X0_mem0
-	S += X0_mem0+ 2 <= X0
+	X_SSWU0_mem0 = S.Task('X_SSWU0_mem0', length=1, delay_cost=1)
+	X_SSWU0_mem0 += MAIN_MEM_r[0]
+	S += alpha2V_U0_w < X_SSWU0_mem0
+	S += X_SSWU0_mem0+ 2 <= X_SSWU0
 
-	X0_mem1 = S.Task('X0_mem1', length=1, delay_cost=1)
-	X0_mem1 += MAIN_MEM_r[0]
-	S += xit2N0_w < X0_mem1
-	S += X0_mem1+ 1 <= X0
+	X_SSWU0_mem1 = S.Task('X_SSWU0_mem1', length=1, delay_cost=1)
+	X_SSWU0_mem1 += MAIN_MEM_r[0]
+	S += xit2N0_w < X_SSWU0_mem1
+	S += X_SSWU0_mem1+ 1 <= X_SSWU0
 
-	X0_mem2 = S.Task('X0_mem2', length=1, delay_cost=1)
-	X0_mem2 += MAIN_MEM_r[0]
-	S += X0_mem2+ 0 <= X0
+	X_SSWU0_mem2 = S.Task('X_SSWU0_mem2', length=1, delay_cost=1)
+	X_SSWU0_mem2 += MAIN_MEM_r[0]
+	S += X_SSWU0_mem2+ 0 <= X_SSWU0
 
-	X1 = S.Task('X1', length=3, delay_cost=1)
-	X1 += alt(CSEL)
+	X_SSWU1 = S.Task('X_SSWU1', length=3, delay_cost=1)
+	X_SSWU1 += alt(CSEL)
 
-	X1_w = S.Task('X1_w', length=1, delay_cost=1)
-	X1_w += alt(MAIN_MEM_w)
-	S += X1+2 <= X1_w
+	X_SSWU1_w = S.Task('X_SSWU1_w', length=1, delay_cost=1)
+	X_SSWU1_w += alt(MAIN_MEM_w)
+	S += X_SSWU1+4 <= X_SSWU1_w
 
-	X1_mem0 = S.Task('X1_mem0', length=1, delay_cost=1)
-	X1_mem0 += MAIN_MEM_r[0]
-	S += alpha2V_U1_w < X1_mem0
-	S += X1_mem0+ 2 <= X1
+	X_SSWU1_mem0 = S.Task('X_SSWU1_mem0', length=1, delay_cost=1)
+	X_SSWU1_mem0 += MAIN_MEM_r[0]
+	S += alpha2V_U1_w < X_SSWU1_mem0
+	S += X_SSWU1_mem0+ 2 <= X_SSWU1
 
-	X1_mem1 = S.Task('X1_mem1', length=1, delay_cost=1)
-	X1_mem1 += MAIN_MEM_r[0]
-	S += xit2N1_w < X1_mem1
-	S += X1_mem1+ 1 <= X1
+	X_SSWU1_mem1 = S.Task('X_SSWU1_mem1', length=1, delay_cost=1)
+	X_SSWU1_mem1 += MAIN_MEM_r[0]
+	S += xit2N1_w < X_SSWU1_mem1
+	S += X_SSWU1_mem1+ 1 <= X_SSWU1
 
-	X1_mem2 = S.Task('X1_mem2', length=1, delay_cost=1)
-	X1_mem2 += MAIN_MEM_r[0]
-	S += X1_mem2+ 0 <= X1
+	X_SSWU1_mem2 = S.Task('X_SSWU1_mem2', length=1, delay_cost=1)
+	X_SSWU1_mem2 += MAIN_MEM_r[0]
+	S += X_SSWU1_mem2+ 0 <= X_SSWU1
 
 	y0 = S.Task('y0', length=3, delay_cost=1)
 	y0 += alt(CSEL)
 
 	y0_w = S.Task('y0_w', length=1, delay_cost=1)
 	y0_w += alt(MAIN_MEM_w)
-	S += y0+2 <= y0_w
+	S += y0+4 <= y0_w
 
 	y0_mem0 = S.Task('y0_mem0', length=1, delay_cost=1)
 	y0_mem0 += MAIN_MEM_r[0]
@@ -388,7 +388,7 @@ def solve():
 
 	y1_w = S.Task('y1_w', length=1, delay_cost=1)
 	y1_w += alt(MAIN_MEM_w)
-	S += y1+2 <= y1_w
+	S += y1+4 <= y1_w
 
 	y1_mem0 = S.Task('y1_mem0', length=1, delay_cost=1)
 	y1_mem0 += MAIN_MEM_r[0]
@@ -447,47 +447,47 @@ def solve():
 	S += y1_w < y_alt1_mem1
 	S += y_alt1_mem1 <= y_alt1
 
-	Y0 = S.Task('Y0', length=3, delay_cost=1)
-	Y0 += alt(CSEL)
+	Y_SSWU0 = S.Task('Y_SSWU0', length=3, delay_cost=1)
+	Y_SSWU0 += alt(CSEL)
 
-	Y0_w = S.Task('Y0_w', length=1, delay_cost=1)
-	Y0_w += alt(MAIN_MEM_w)
-	S += Y0+2 <= Y0_w
+	Y_SSWU0_w = S.Task('Y_SSWU0_w', length=1, delay_cost=1)
+	Y_SSWU0_w += alt(MAIN_MEM_w)
+	S += Y_SSWU0+4 <= Y_SSWU0_w
 
-	Y0_mem0 = S.Task('Y0_mem0', length=1, delay_cost=1)
-	Y0_mem0 += MAIN_MEM_r[0]
-	S += Y0_mem0+ 2 <= Y0
+	Y_SSWU0_mem0 = S.Task('Y_SSWU0_mem0', length=1, delay_cost=1)
+	Y_SSWU0_mem0 += MAIN_MEM_r[0]
+	S += Y_SSWU0_mem0+ 2 <= Y_SSWU0
 
-	Y0_mem1 = S.Task('Y0_mem1', length=1, delay_cost=1)
-	Y0_mem1 += MAIN_MEM_r[0]
-	S += y0_w < Y0_mem1
-	S += Y0_mem1+ 1 <= Y0
+	Y_SSWU0_mem1 = S.Task('Y_SSWU0_mem1', length=1, delay_cost=1)
+	Y_SSWU0_mem1 += MAIN_MEM_r[0]
+	S += y0_w < Y_SSWU0_mem1
+	S += Y_SSWU0_mem1+ 1 <= Y_SSWU0
 
-	Y0_mem2 = S.Task('Y0_mem2', length=1, delay_cost=1)
-	Y0_mem2 += MAIN_MEM_r[0]
-	S += y_alt0_w < Y0_mem2
-	S += Y0_mem2+ 0 <= Y0
+	Y_SSWU0_mem2 = S.Task('Y_SSWU0_mem2', length=1, delay_cost=1)
+	Y_SSWU0_mem2 += MAIN_MEM_r[0]
+	S += y_alt0_w < Y_SSWU0_mem2
+	S += Y_SSWU0_mem2+ 0 <= Y_SSWU0
 
-	Y1 = S.Task('Y1', length=3, delay_cost=1)
-	Y1 += alt(CSEL)
+	Y_SSWU1 = S.Task('Y_SSWU1', length=3, delay_cost=1)
+	Y_SSWU1 += alt(CSEL)
 
-	Y1_w = S.Task('Y1_w', length=1, delay_cost=1)
-	Y1_w += alt(MAIN_MEM_w)
-	S += Y1+2 <= Y1_w
+	Y_SSWU1_w = S.Task('Y_SSWU1_w', length=1, delay_cost=1)
+	Y_SSWU1_w += alt(MAIN_MEM_w)
+	S += Y_SSWU1+4 <= Y_SSWU1_w
 
-	Y1_mem0 = S.Task('Y1_mem0', length=1, delay_cost=1)
-	Y1_mem0 += MAIN_MEM_r[0]
-	S += Y1_mem0+ 2 <= Y1
+	Y_SSWU1_mem0 = S.Task('Y_SSWU1_mem0', length=1, delay_cost=1)
+	Y_SSWU1_mem0 += MAIN_MEM_r[0]
+	S += Y_SSWU1_mem0+ 2 <= Y_SSWU1
 
-	Y1_mem1 = S.Task('Y1_mem1', length=1, delay_cost=1)
-	Y1_mem1 += MAIN_MEM_r[0]
-	S += y1_w < Y1_mem1
-	S += Y1_mem1+ 1 <= Y1
+	Y_SSWU1_mem1 = S.Task('Y_SSWU1_mem1', length=1, delay_cost=1)
+	Y_SSWU1_mem1 += MAIN_MEM_r[0]
+	S += y1_w < Y_SSWU1_mem1
+	S += Y_SSWU1_mem1+ 1 <= Y_SSWU1
 
-	Y1_mem2 = S.Task('Y1_mem2', length=1, delay_cost=1)
-	Y1_mem2 += MAIN_MEM_r[0]
-	S += y_alt1_w < Y1_mem2
-	S += Y1_mem2+ 0 <= Y1
+	Y_SSWU1_mem2 = S.Task('Y_SSWU1_mem2', length=1, delay_cost=1)
+	Y_SSWU1_mem2 += MAIN_MEM_r[0]
+	S += y_alt1_w < Y_SSWU1_mem2
+	S += Y_SSWU1_mem2+ 0 <= Y_SSWU1
 
 	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
 

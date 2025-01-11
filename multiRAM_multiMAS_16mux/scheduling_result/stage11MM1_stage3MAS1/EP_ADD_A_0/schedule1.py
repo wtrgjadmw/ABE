@@ -497,70 +497,71 @@ def solve():
 	S += 31 < t26_mem1
 	S += t26_mem1 <= t26
 
-	PZ_new = S.Task('PZ_new', length=11, delay_cost=1)
-	PZ_new += alt(MM)
-	PZ_new_in = S.Task('PZ_new_in', length=1, delay_cost=1)
-	PZ_new_in += alt(MM_in)
-	S += PZ_new_in*MM_in[0]<=PZ_new*MM[0]
-	S += 0<PZ_new
+	Z_Hash1_new = S.Task('Z_Hash1_new', length=3, delay_cost=1)
+	Z_Hash1_new += alt(MAS)
+	Z_Hash1_new_in = S.Task('Z_Hash1_new_in', length=1, delay_cost=1)
+	Z_Hash1_new_in += alt(MAS_in)
+	S += Z_Hash1_new_in*MAS_in[0]<=Z_Hash1_new*MAS[0]
 
-	PZ_new_w = S.Task('PZ_new_w', length=1, delay_cost=1)
-	PZ_new_w += alt(MAIN_MEM_w)
-	S += PZ_new <= PZ_new_w
+	S += 0<Z_Hash1_new
 
-	PZ_new_mem0 = S.Task('PZ_new_mem0', length=1, delay_cost=1)
-	PZ_new_mem0 += MM_MEM[0]
-	S += 37 < PZ_new_mem0
-	S += PZ_new_mem0 <= PZ_new
+	Z_Hash1_new_w = S.Task('Z_Hash1_new_w', length=1, delay_cost=1)
+	Z_Hash1_new_w += alt(MAIN_MEM_w)
+	S += Z_Hash1_new <= Z_Hash1_new_w
 
-	PZ_new_mem1 = S.Task('PZ_new_mem1', length=1, delay_cost=1)
-	PZ_new_mem1 += MM_MEM[1]
-	S += 34 < PZ_new_mem1
-	S += PZ_new_mem1 <= PZ_new
+	Z_Hash1_new_mem0 = S.Task('Z_Hash1_new_mem0', length=1, delay_cost=1)
+	Z_Hash1_new_mem0 += MM_MEM[0]
+	S += 37 < Z_Hash1_new_mem0
+	S += Z_Hash1_new_mem0 <= Z_Hash1_new
 
-	PX_new = S.Task('PX_new', length=3, delay_cost=1)
-	PX_new += alt(MAS)
-	PX_new_in = S.Task('PX_new_in', length=1, delay_cost=1)
-	PX_new_in += alt(MAS_in)
-	S += PX_new_in*MAS_in[0]<=PX_new*MAS[0]
+	Z_Hash1_new_mem1 = S.Task('Z_Hash1_new_mem1', length=1, delay_cost=1)
+	Z_Hash1_new_mem1 += MM_MEM[1]
+	S += 34 < Z_Hash1_new_mem1
+	S += Z_Hash1_new_mem1 <= Z_Hash1_new
 
-	S += 0<PX_new
+	X_Hash1_new = S.Task('X_Hash1_new', length=3, delay_cost=1)
+	X_Hash1_new += alt(MAS)
+	X_Hash1_new_in = S.Task('X_Hash1_new_in', length=1, delay_cost=1)
+	X_Hash1_new_in += alt(MAS_in)
+	S += X_Hash1_new_in*MAS_in[0]<=X_Hash1_new*MAS[0]
 
-	PX_new_w = S.Task('PX_new_w', length=1, delay_cost=1)
-	PX_new_w += alt(MAIN_MEM_w)
-	S += PX_new <= PX_new_w
+	S += 0<X_Hash1_new
 
-	PX_new_mem0 = S.Task('PX_new_mem0', length=1, delay_cost=1)
-	PX_new_mem0 += MM_MEM[0]
-	S += 38 < PX_new_mem0
-	S += PX_new_mem0 <= PX_new
+	X_Hash1_new_w = S.Task('X_Hash1_new_w', length=1, delay_cost=1)
+	X_Hash1_new_w += alt(MAIN_MEM_w)
+	S += X_Hash1_new <= X_Hash1_new_w
 
-	PX_new_mem1 = S.Task('PX_new_mem1', length=1, delay_cost=1)
-	PX_new_mem1 += alt(MM_MEM)
-	S += (t24*MM[0])-1 < PX_new_mem1*MM_MEM[1]
-	S += PX_new_mem1 <= PX_new
+	X_Hash1_new_mem0 = S.Task('X_Hash1_new_mem0', length=1, delay_cost=1)
+	X_Hash1_new_mem0 += MM_MEM[0]
+	S += 38 < X_Hash1_new_mem0
+	S += X_Hash1_new_mem0 <= X_Hash1_new
 
-	PY_new = S.Task('PY_new', length=3, delay_cost=1)
-	PY_new += alt(MAS)
-	PY_new_in = S.Task('PY_new_in', length=1, delay_cost=1)
-	PY_new_in += alt(MAS_in)
-	S += PY_new_in*MAS_in[0]<=PY_new*MAS[0]
+	X_Hash1_new_mem1 = S.Task('X_Hash1_new_mem1', length=1, delay_cost=1)
+	X_Hash1_new_mem1 += alt(MM_MEM)
+	S += (t24*MM[0])-1 < X_Hash1_new_mem1*MM_MEM[1]
+	S += X_Hash1_new_mem1 <= X_Hash1_new
 
-	S += 0<PY_new
+	Y_Hash1_new = S.Task('Y_Hash1_new', length=3, delay_cost=1)
+	Y_Hash1_new += alt(MAS)
+	Y_Hash1_new_in = S.Task('Y_Hash1_new_in', length=1, delay_cost=1)
+	Y_Hash1_new_in += alt(MAS_in)
+	S += Y_Hash1_new_in*MAS_in[0]<=Y_Hash1_new*MAS[0]
 
-	PY_new_w = S.Task('PY_new_w', length=1, delay_cost=1)
-	PY_new_w += alt(MAIN_MEM_w)
-	S += PY_new <= PY_new_w
+	S += 0<Y_Hash1_new
 
-	PY_new_mem0 = S.Task('PY_new_mem0', length=1, delay_cost=1)
-	PY_new_mem0 += MM_MEM[0]
-	S += 39 < PY_new_mem0
-	S += PY_new_mem0 <= PY_new
+	Y_Hash1_new_w = S.Task('Y_Hash1_new_w', length=1, delay_cost=1)
+	Y_Hash1_new_w += alt(MAIN_MEM_w)
+	S += Y_Hash1_new <= Y_Hash1_new_w
 
-	PY_new_mem1 = S.Task('PY_new_mem1', length=1, delay_cost=1)
-	PY_new_mem1 += alt(MM_MEM)
-	S += (t26*MM[0])-1 < PY_new_mem1*MM_MEM[1]
-	S += PY_new_mem1 <= PY_new
+	Y_Hash1_new_mem0 = S.Task('Y_Hash1_new_mem0', length=1, delay_cost=1)
+	Y_Hash1_new_mem0 += MM_MEM[0]
+	S += 39 < Y_Hash1_new_mem0
+	S += Y_Hash1_new_mem0 <= Y_Hash1_new
+
+	Y_Hash1_new_mem1 = S.Task('Y_Hash1_new_mem1', length=1, delay_cost=1)
+	Y_Hash1_new_mem1 += alt(MM_MEM)
+	S += (t26*MM[0])-1 < Y_Hash1_new_mem1*MM_MEM[1]
+	S += Y_Hash1_new_mem1 <= Y_Hash1_new
 
 	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
 

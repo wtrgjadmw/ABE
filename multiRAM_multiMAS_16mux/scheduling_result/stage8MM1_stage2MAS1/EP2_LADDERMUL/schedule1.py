@@ -1257,22 +1257,6 @@ def solve():
 	S += (T11*MAS[0])-1 < T16_t2_mem1*MAS_MEM[1]
 	S += T16_t2_mem1 <= T16_t2
 
-	T20_t2 = S.Task('T20_t2', length=2, delay_cost=1)
-	T20_t2 += alt(MAS)
-	T20_t2_in = S.Task('T20_t2_in', length=1, delay_cost=1)
-	T20_t2_in += alt(MAS_in)
-	S += T20_t2_in*MAS_in[0]<=T20_t2*MAS[0]
-
-	T20_t2_mem0 = S.Task('T20_t2_mem0', length=1, delay_cost=1)
-	T20_t2_mem0 += alt(MAS_MEM)
-	S += (T50*MAS[0])-1 < T20_t2_mem0*MAS_MEM[0]
-	S += T20_t2_mem0 <= T20_t2
-
-	T20_t2_mem1 = S.Task('T20_t2_mem1', length=1, delay_cost=1)
-	T20_t2_mem1 += alt(MAS_MEM)
-	S += (T51*MAS[0])-1 < T20_t2_mem1*MAS_MEM[1]
-	S += T20_t2_mem1 <= T20_t2
-
 	solvers.mip.solve(S,msg=1,kind='CPLEX',ratio_gap=1.01)
 
 	solution = [['hoge']*len(S.solution()[1]) for i in range(len(S.solution()))]
