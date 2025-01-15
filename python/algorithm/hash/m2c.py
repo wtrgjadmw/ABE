@@ -40,28 +40,26 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     UV = U * V
     V2 = V * V
     UV3 = UV * V2
-    #print("UV3: ", hex(UV3.value))
-    #print("xiA: ", hex((xi*A_).value))
     UV3_exp = UV3 ** exp_lad_srt
-    #print("UV3_exp: ", hex(UV3_exp.value))
     alpha = UV3_exp * UV
 
-    alphaD = alpha * D
+    # alphaD = alpha * D
 
     alpha2 = alpha * alpha
     alpha2V = alpha2 * V
     if alpha2V == U:
         X = N
-        Y = alphaD
+        y = alpha
         Z = D
-        if t.sign():
-            Y = zero - Y
     else:
         X = xit2 * N
         t3 = t * t2
-        Y = sqrt_negxi3 * t3 * alphaD
+        y = sqrt_negxi3 * t3 * alpha
         # Y = t3 * alphaD
         Z = D
+    if t.value % 2 != y.value % 2:
+        y = zero - y
+    Y = y * D
     # print("X: ", hex(X.value))
     # print("Y: ", hex(Y.value))
     # print("Y: ", hex((zero-Y).value))
@@ -109,24 +107,31 @@ def cofactor_clearing(point: pointFp) -> pointFp:
 
 
 def map_to_curve_BLS12381G1(t_list: list[list[int]]) -> pointFp:
+    print(hex(t_list[0][0]))
+    print(hex(t_list[1][0]))
     Q0 = SSWU_before_isogeny(t_list[0][0])
     Q1 = SSWU_before_isogeny(t_list[1][0])
+    print("Q0")
     print("X: ", hex(Q0.X.value))
     print("Y: ", hex(Q0.Y.value))
     print("Z: ", hex(Q0.Z.value))
+    print("Q1")
     print("X: ", hex(Q1.X.value))
     print("Y: ", hex(Q1.Y.value))
     print("Z: ", hex(Q1.Z.value))
     Q = Q0 + Q1
+    print("Q")
     print("X: ", hex(Q.X.value))
     print("Y: ", hex(Q.Y.value))
     print("Z: ", hex(Q.Z.value))
     Q.check_on_curve()
     P = isogeny(Q)
+    print("P")
     print("X: ", hex(P.X.value))
     print("Y: ", hex(P.Y.value))
     print("Z: ", hex(P.Z.value))
     M = cofactor_clearing(P)
+    print("M")
     print("X: ", hex(M.X.value))
     print("Y: ", hex(M.Y.value))
     print("Z: ", hex(M.Z.value))
@@ -151,7 +156,7 @@ def test_SSWU():
 
 if __name__ == "__main__":
     # t_list = hash_to_field("abc".encode("utf-8"), 2)
-    t_list=[[0X120C0DEB309E40884487135D107A38A92183D1583FAEC6D2B7401266C7E60D3FCE2EAA45032F9E75DA398BED4F91710C], [0X13119B643EEE18BFEFEDA41FDAF6FA2E556C63D57B651C709BE615116FDA89D3A7C56B0E54E19326D3D14D9FBF7B4090]]
+    t_list=[[0x14DEF24C5CD6507F034DE23C06827F91A1C1CEA3409B438EB008909EE49C86C4301E0B449708AB6E46F8CE7D050EAF3B], [0x0769F3B27F8E5A84A864A1B6916CEEE5C8C32C7FAAA178C9612D575C883DB63DDC2DB890331E51B1CCF5F1D66DAC2C6D]]
     M = map_to_curve_BLS12381G1(t_list)
     M.check_on_curve()
     MX = M.X / M.Z
