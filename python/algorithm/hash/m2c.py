@@ -6,8 +6,9 @@ from h2f import hash_to_field
 # Output: Q, a point on the elliptic curve E.
 # Steps: defined in Section 6.
 
-# xi = Fp(11)
-# sqrt_negxi3, is_sqr = (zero-(xi**3)).sqrt()
+xi = Fp(11)
+sqrt_negxi3 = Fp(0x03D689D1E0E762CEF9F2BEC6130316806B4C80EDA6FC10CE77AE83EAB1EA8B8B8A407C9C6DB195E06F2DBEABC2BAEFF5)
+exp_lad_srt = 0x680447A8E5FF9A692C6E9ED90D2EB35D91DD2E13CE144AFD9CC34A83DAC3D8907AAFFFFAC54FFFFEE7FBFFFFFFFEAAA
 
 def SSWU_before_isogeny(t_: int) -> pointFp:
     if t_ == 0 or t_ == 1 or t_ == -1:
@@ -39,7 +40,10 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     UV = U * V
     V2 = V * V
     UV3 = UV * V2
-    UV3_exp = UV3 ** ((p - 3) // 4)
+    #print("UV3: ", hex(UV3.value))
+    #print("xiA: ", hex((xi*A_).value))
+    UV3_exp = UV3 ** exp_lad_srt
+    #print("UV3_exp: ", hex(UV3_exp.value))
     alpha = UV3_exp * UV
 
     alphaD = alpha * D
@@ -48,15 +52,19 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     alpha2V = alpha2 * V
     if alpha2V == U:
         X = N
-        Y = t.sign() * alphaD
+        Y = alphaD
         Z = D
     else:
         X = xit2 * N
         t3 = t * t2
-        # Y = sqrt_negxi3 * t3 * alphaD
-        Y = t3 * alphaD
+        Y = sqrt_negxi3 * t3 * alphaD
+        #Y = t3 * alphaD
         Z = D
-
+    if t.value%2 != Y.value%2:
+        Y = zero-Y
+    # print("X: ", hex(X.value))
+    # print("Y: ", hex(Y.value))
+    # print("Z: ", hex(Z.value))
     Q = pointFp(coord_type="projective", coordinate=[X, Y, Z], coefficients=[A_, B_])
     Q.check_on_curve()
     return Q
@@ -96,15 +104,27 @@ def isogeny(point: pointFp) -> pointFp:
 
 # scalar mul *h (h: cofactor)
 def cofactor_clearing(point: pointFp) -> pointFp:
-    return point.scalar_mul(h1)
+    return point.scalar_mul(1-u)
 
 
 def map_to_curve_BLS12381G1(t_list: list[list[int]]) -> pointFp:
     Q0 = SSWU_before_isogeny(t_list[0][0])
     Q1 = SSWU_before_isogeny(t_list[1][0])
+    # print("X: ", hex(Q0.X.value))
+    # print("Y: ", hex(Q0.Y.value))
+    # print("Z: ", hex(Q0.Z.value))
+    # print("X: ", hex(Q1.X.value))
+    # print("Y: ", hex(Q1.Y.value))
+    # print("Z: ", hex(Q1.Z.value))
     Q = Q0 + Q1
+    # print("X: ", hex(Q.X.value))
+    # print("Y: ", hex(Q.Y.value))
+    # print("Z: ", hex(Q.Z.value))
     Q.check_on_curve()
     P = isogeny(Q)
+    # print("X: ", hex(P.X.value))
+    # print("Y: ", hex(P.Y.value))
+    # print("Z: ", hex(P.Z.value))
     M = cofactor_clearing(P)
     return M
 
@@ -126,7 +146,8 @@ def test_SSWU():
 
 
 if __name__ == "__main__":
-    t_list = hash_to_field("abc".encode("utf-8"), 2)
+    # t_list = hash_to_field("abc".encode("utf-8"), 2)
+    t_list=[[0x14DEF24C5CD6507F034DE23C06827F91A1C1CEA3409B438EB008909EE49C86C4301E0B449708AB6E46F8CE7D050EAF3B], [0x0769F3B27F8E5A84A864A1B6916CEEE5C8C32C7FAAA178C9612D575C883DB63DDC2DB890331E51B1CCF5F1D66DAC2C6D]]
     M = map_to_curve_BLS12381G1(t_list)
     M.check_on_curve()
     MX = M.X / M.Z
@@ -134,11 +155,13 @@ if __name__ == "__main__":
     print("result point: ")
     print("%x" % MX.value)
     print("%x" % MY.value)
-    M = map_to_curve_BLS12381G1_2iso(t_list)
-    M.check_on_curve()
-    MX = M.X / M.Z
-    MY = M.Y / M.Z
-    print("result point: ")
-    print("%x" % MX.value)
-    print("%x" % MY.value)
-    # test_SSWU()
+    # M = map_to_curve_BLS12381G1_2iso(t_list)
+    # M.check_on_curve()
+    # MX = M.X / M.Z
+    # MY = M.Y / M.Z
+    # print("result point: ")
+    # print("%x" % MX.value)
+    # print("%x" % MY.value)
+    # # test_SSWU()
+    # Q0 = SSWU_before_isogeny(0x14DEF24C5CD6507F034DE23C06827F91A1C1CEA3409B438EB008909EE49C86C4301E0B449708AB6E46F8CE7D050EAF3B)
+    # Q1 = SSWU_before_isogeny(0x0769F3B27F8E5A84A864A1B6916CEEE5C8C32C7FAAA178C9612D575C883DB63DDC2DB890331E51B1CCF5F1D66DAC2C6D)

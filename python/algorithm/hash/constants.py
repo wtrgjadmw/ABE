@@ -34,8 +34,22 @@ class Fp:
         return self * other_inv
 
     def __pow__(self, exponent: int):
-        result = pow(self.value, exponent, self.p)
-        return Fp(result)
+        # result = pow(self.value, exponent, self.p)
+        exponent_bit_list = bits_of(exponent)
+        exponent_bit_list = [0]*(381-len(exponent_bit_list)) + exponent_bit_list
+        x1, x2 = Fp(1), self
+        for i in range(len(exponent_bit_list)):
+            if exponent_bit_list[i] == 0:
+                x2 = x1 * x2
+                x1 = x1 * x1
+            else:
+                x1 = x1 * x2
+                x2 = x2 * x2
+        #result = pow(self.value, exponent, self.p)
+            # print("x1: ", hex(x1.value))
+            # print("x2: ", hex(x2.value))
+            # print()
+        return x1
 
     # reference: https://zenn.dev/peria/articles/c6afc72b6b003c
     def sqrt(self):
@@ -81,6 +95,7 @@ u = -(2**63 + 2**62 + 2**60 + 2**57 + 2**48 + 2**16)
 r = u**4 - u**2 + 1
 p = (((u - 1) ** 2) * r) // 3 + u
 h1 = ((u - 1) ** 2) // 3
+print(bin(1-u))
 h2 = (
     u**8 - 4 * (u**7) + 5 * (u**6) - 4 * (u**4) + 6 * (u**3) - 4 * (u**2) - 4 * u + 13
 ) // 9
@@ -350,9 +365,17 @@ class pointFp:
     def scalar_mul(self, n):
         res = self
         for nb in bits_of(n)[1:]:
-            res = self.double()
+            res = res.double()
+            print("pdbl")
+            print("X: ", hex(res.X.value))
+            print("Y: ", hex(res.Y.value))
+            print("Z: ", hex(res.Z.value))
             if nb == 1:
-                res = res + self
+                res = self + res
+                print("padd")
+                print("X: ", hex(res.X.value))
+                print("Y: ", hex(res.Y.value))
+                print("Z: ", hex(res.Z.value))
         return res
 
     def check_on_curve(self):
@@ -416,13 +439,15 @@ def csel(mode, cond: Fp, din1: Fp, din2: Fp):
             return din2
 
 if __name__ == "__main__":
-    random_point1 = random_pointFp(p, [a, b])
-    random_point2 = random_pointFp(p, [a, b])
-    random_point3 = random_pointFp(p, [A_, B_])
-    random_point4 = random_pointFp(p, [A_, B_])
-    double_point1 = random_point1 + random_point2
-    # double_point1 = random_point1.double()
-    double_point1.check_on_curve()
-    double_point2 = random_point3 + random_point4
-    # double_point2 = random_point2.double()
-    double_point2.check_on_curve()
+    # random_point1 = random_pointFp(p, [a, b])
+    # random_point2 = random_pointFp(p, [a, b])
+    # random_point3 = random_pointFp(p, [A_, B_])
+    # random_point4 = random_pointFp(p, [A_, B_])
+    # double_point1 = random_point1 + random_point2
+    # # double_point1 = random_point1.double()
+    # double_point1.check_on_curve()
+    # double_point2 = random_point3 + random_point4
+    # # double_point2 = random_point2.double()
+    # double_point2.check_on_curve()
+    print(hex(A_.value))
+    print(hex(B_.value))
