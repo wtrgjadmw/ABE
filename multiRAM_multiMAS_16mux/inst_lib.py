@@ -37,6 +37,7 @@ class ALUInstruction:
         self.inst_dict["INV"] = 0
         self.inst_dict["CSL_MODE"] = 0
         self.inst_dict["CSL_START"] = 0
+        self.inst_dict["RAND_INIT"] = 0
 
         self.inst_dict["MAIN_READA"] = 0
         self.inst_dict["MAIN_READB"] = 0
@@ -62,10 +63,11 @@ class ALUInstruction:
             self.inst_dict["MAIN_READ_MASK{}".format(read_port)] = 1 if is_masked_addr else 0
 
     def set_operator_init(self, solution_data: solutionData, operand_index, mux):
-        if solution_data.operation == "CSEL":
-            self.inst_dict["CSL_START"] = 1
-            self.inst_dict["CSL_MODE"] = solution_data.csel_flag
-            return
+        # if solution_data.operation == "CSEL":
+        #     #print("CSEL")
+        #     self.inst_dict["CSL_START"] = 1
+        #     self.inst_dict["CSL_MODE"] = solution_data.csel_flag
+        #     return
         suffix = self.index2alphabet(operand_index)
         self.inst_dict["{}_MUX{}".format(solution_data.operator, suffix)] = mux
         self.inst_dict["{}_VAL".format(solution_data.operator)] = 1
@@ -78,8 +80,12 @@ class ALUInstruction:
         if ram_type == "MAIN":
             is_masked_addr = mask and 0 <= waddr <= 3
             self.inst_dict["MAIN_WRITE_MASK"] = 1 if is_masked_addr else 0
-            operator_index = int(output_operator[-1])
-            self.inst_dict["MAIN_WRITE_MUX"] = operator_index if "MM" in output_operator else self.MMnum + operator_index
+            if output_operator == "CSEL":
+                self.inst_dict["MAIN_WRITE_MUX"] = 6
+            else:
+                operator_index = int(output_operator[-1])
+                self.inst_dict["MAIN_WRITE_MUX"] = operator_index if "MM" in output_operator else self.MMnum + operator_index
+            # print(self.inst_dict["MAIN_WRITE_MUX"])
 
 
 
@@ -88,10 +94,10 @@ class ALUInstIndex:
         self.MMnum = MMnum
         self.MASnum = MASnum
         self.MM_MEM_ADDR_BITS = 7
-        self.MAS_MEM_ADDR_BITS = 6
+        self.MAS_MEM_ADDR_BITS = 5
         self.MAIN_MEM_ADDR_BITS = 8
 
-        self.INST_CAL_MUX_BIT = (MMnum*4 + MASnum*4).bit_length()
+        self.INST_CAL_MUX_BIT = (MMnum*3 + MASnum*3).bit_length()
         self.INST_ADDR_MASK_BIT = 1
         self.INST_MM_MAS_VAL_BIT = 1
         self.INST_MAS_ISSUB_BIT = 1
@@ -120,6 +126,12 @@ class ALUInstIndex:
             self.index_list["MAS{}_WRITE".format(i)] = self.index_list["MAS{}_VAL".format(i)] + self.INST_MM_MAS_VAL_BIT
             self.index_list["MAS{}_WE".format(i)] = self.index_list["MAS{}_WRITE".format(i)] + self.MAS_MEM_ADDR_BITS
             cnt = self.index_list["MAS{}_WE".format(i)] + self.INST_WRITE_EN_BIT
+
+        self.index_list["INV"] = cnt
+        self.index_list["CSL_MODE"] = cnt+1
+        self.index_list["CSL_START"] = cnt+2
+        self.index_list["RAND_INIT"] = cnt+3
+        cnt = cnt + 4
 
         self.index_list["MAIN_READA"] = cnt
         self.index_list["MAIN_READB"] = self.index_list["MAIN_READA"] + self.MAIN_MEM_ADDR_BITS

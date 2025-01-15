@@ -85,9 +85,9 @@ def make_split_scheduling(formulas: list[formulaData]):
             cnt += 1
     
     # 2xSSWU_BEFORE_EXP
-    # input_first = ['t0', 't1', 'A_', 'ONE', 'B_', 'negA_', 'xi', 'xiA', 'Z_SSWU0', 'Z_SSWU1', 'D0', 'D1']
-    # outputs = ['UV30', 'UV31', 'Z_SSWU0', 'Z_SSWU1', 'UV0', 'UV1', 'V0', 'V1', 'D0', 'D1', 'U0', 'U1', 'N0', 'N1', 't20', 't21', 'xit20', 'xit21']   
+    # input_first = ['t0', 't1', 'A_', 'ONE', 'B_', 'negA_', 'xi', 'xiA', 'Z_Hash0', 'Z_Hash1', 'D0', 'D1']
+    # outputs = ['UV30', 'UV31', 'Z_Hash0', 'Z_Hash1', 'UV0', 'UV1', 'V0', 'V1', 'D0', 'D1', 'U0', 'U1', 'N0', 'N1', 't20', 't21', 'xit20', 'xit21']   
     # 2xSSWU_AFTER_EXP
-    input_first = ['UV3_exp0', 'UV0', 'UV3_exp1', 'UV1', 'Z0', 'Z1', 'V0', 'V1', 'xit20', 'N0', 'xit21', 'N1', 't20', 't0', 't21', 't1', 'sqrt_negxi3', 'U0', 'U1', 'ZERO', 'alpha2V_U0', 'alpha2V_U1', 'xit2N0', 'xit2N1', 'y0', 'y1', 'alphaD0', 'alphaD1', 'y20', 'y21', 'y_alt0', 'y_alt1', 'ONE']
-    outputs = ['X0', 'X1', 'Y0', 'Y1', 'xit2N0', 'xit2N1', 'alpha2V_U0', 'y20', 'alphaD0', 'alpha2V_U1', 'y21', 'alphaD1', 'y0', 'y_alt0', 'y1', 'y_alt1'] 
+    input_first = ['UV3_exp0', 'UV0', 'UV3_exp1', 'UV1', 'Z_Hash0', 'Z_Hash1', 'V0', 'V1', 'xit20', 'N0', 'xit21', 'N1', 't20', 't0', 't21', 't1', 'sqrt_negxi3', 'U0', 'U1', 'ZERO', 'alpha2V_U0', 'alpha2V_U1', 'xit2N0', 'xit2N1', 'y0', 'y1', 'alpha0', 'alpha1', 'y20', 'y21', 'y_alt0', 'y_alt1', 'ONE', 'Y_0', 'Y_1']
+    outputs = ['X_Hash0', 'X_Hash1', 'Y_Hash0', 'Y_Hash1', 'xit2N0', 'xit2N1', 'alpha2V_U0', 'y20', 'alpha2V_U1', 'y21', 'y0', 'y_alt0', 'y1', 'y_alt1', 'Y_0', 'Y_1', 'alpha0', 'alpha1'] 
     return split_ope_c, input_first, outputs, input_num

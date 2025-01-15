@@ -4,7 +4,7 @@ class formulaData:
         self.operands = operands
         self.result = result
         self.type = type
-        self.csel_flag = (1 if csel_flag == "one" else 0) if type == "CSEL" else csel_flag
+        self.csel_flag = (1 if csel_flag == "ONE" else 0) if type == "CSEL" else csel_flag
         self.limit_time = -1
     
     def set_limit_time(self, limit_time):

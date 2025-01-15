@@ -40,7 +40,9 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
     UV = U * V
     V2 = V * V
     UV3 = UV * V2
+    print(UV3)
     UV3_exp = UV3 ** exp_lad_srt
+    print(UV3_exp)
     alpha = UV3_exp * UV
 
     # alphaD = alpha * D

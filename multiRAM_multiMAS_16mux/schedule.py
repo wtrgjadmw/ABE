@@ -114,7 +114,7 @@ def make_mem_task_definition(
                     f_write.write("\t{0} += MAS_MEM[{1}]\n".format(mem_value_name, pre_resource_num*2+i))
                     f_write.write("\tS += {1} < {0}\n".format(mem_value_name, pre_end_time - 1))
         if target_formula.type == "CSEL":
-            f_write.write("\tS += {0} <= {1}\n\n".format(mem_value_name + "+ {}".format(2-i), target_formula.result))
+            f_write.write("\tS += {0} <= {1}\n\n".format(target_formula.result + "- {}".format(4-i), mem_value_name))
         else:
             f_write.write("\tS += {1} <= {0}\n\n".format(target_formula.result, mem_value_name))
         mem_table[mem_value_name] = operand
