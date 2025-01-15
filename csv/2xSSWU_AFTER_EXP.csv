@@ -20,7 +20,7 @@ y0,alpha2V_U0,y20,alpha0,ONE,CSEL
 y1,alpha2V_U1,y21,alpha1,ONE,CSEL
 y_alt0,ZERO,y0,SUB
 y_alt1,ZERO,y1,SUB
-Y0,t0,y0,y_alt0,ZERO,CSEL
-Y1,t1,y1,y_alt1,ZERO,CSEL
-Y_Hash0,Y0,Z_Hash0,MUL
-Y_Hash1,Y1,Z_Hash1,MUL
+Y_0,t0,y0,y_alt0,ZERO,CSEL
+Y_1,t1,y1,y_alt1,ZERO,CSEL
+Y_Hash0,Y_0,Z_Hash0,MUL
+Y_Hash1,Y_1,Z_Hash1,MUL
