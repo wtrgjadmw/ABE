@@ -87,8 +87,8 @@ class Fp:
 
     def sign(self):
         if self.value > ((self.p - 1) / 2):
-            return Fp(-1)
-        return Fp(1)
+            return True
+        return False
 
 
 u = -(2**63 + 2**62 + 2**60 + 2**57 + 2**48 + 2**16)
@@ -364,18 +364,19 @@ class pointFp:
 
     def scalar_mul(self, n):
         res = self
+        print(n)
         for nb in bits_of(n)[1:]:
             res = res.double()
-            print("pdbl")
-            print("X: ", hex(res.X.value))
-            print("Y: ", hex(res.Y.value))
-            print("Z: ", hex(res.Z.value))
+            # print("pdbl")
+            # print("X: ", hex(res.X.value))
+            # print("Y: ", hex(res.Y.value))
+            # print("Z: ", hex(res.Z.value))
             if nb == 1:
                 res = self + res
-                print("padd")
-                print("X: ", hex(res.X.value))
-                print("Y: ", hex(res.Y.value))
-                print("Z: ", hex(res.Z.value))
+                # print("padd")
+                # print("X: ", hex(res.X.value))
+                # print("Y: ", hex(res.Y.value))
+                # print("Z: ", hex(res.Z.value))
         return res
 
     def check_on_curve(self):
@@ -386,6 +387,8 @@ class pointFp:
             gx = X3 + aXZ2 + bZ3
             Y2Z = (self.Y ** 2) * self.Z
             assert gx.value == Y2Z.value, "\ng(x) = %x\ny    = %x\n-y   = %x" % (gx.value, Y2Z.value, (zero-Y2Z).value)
+            if gx.value == Y2Z.value:
+                print("ok")
         else:
             raise Exception("not implemented")
 

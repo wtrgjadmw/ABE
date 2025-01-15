@@ -54,16 +54,17 @@ def SSWU_before_isogeny(t_: int) -> pointFp:
         X = N
         Y = alphaD
         Z = D
+        if t.sign():
+            Y = zero - Y
     else:
         X = xit2 * N
         t3 = t * t2
         Y = sqrt_negxi3 * t3 * alphaD
-        #Y = t3 * alphaD
+        # Y = t3 * alphaD
         Z = D
-    if t.value%2 != Y.value%2:
-        Y = zero-Y
     # print("X: ", hex(X.value))
     # print("Y: ", hex(Y.value))
+    # print("Y: ", hex((zero-Y).value))
     # print("Z: ", hex(Z.value))
     Q = pointFp(coord_type="projective", coordinate=[X, Y, Z], coefficients=[A_, B_])
     Q.check_on_curve()
@@ -110,22 +111,25 @@ def cofactor_clearing(point: pointFp) -> pointFp:
 def map_to_curve_BLS12381G1(t_list: list[list[int]]) -> pointFp:
     Q0 = SSWU_before_isogeny(t_list[0][0])
     Q1 = SSWU_before_isogeny(t_list[1][0])
-    # print("X: ", hex(Q0.X.value))
-    # print("Y: ", hex(Q0.Y.value))
-    # print("Z: ", hex(Q0.Z.value))
-    # print("X: ", hex(Q1.X.value))
-    # print("Y: ", hex(Q1.Y.value))
-    # print("Z: ", hex(Q1.Z.value))
+    print("X: ", hex(Q0.X.value))
+    print("Y: ", hex(Q0.Y.value))
+    print("Z: ", hex(Q0.Z.value))
+    print("X: ", hex(Q1.X.value))
+    print("Y: ", hex(Q1.Y.value))
+    print("Z: ", hex(Q1.Z.value))
     Q = Q0 + Q1
-    # print("X: ", hex(Q.X.value))
-    # print("Y: ", hex(Q.Y.value))
-    # print("Z: ", hex(Q.Z.value))
+    print("X: ", hex(Q.X.value))
+    print("Y: ", hex(Q.Y.value))
+    print("Z: ", hex(Q.Z.value))
     Q.check_on_curve()
     P = isogeny(Q)
-    # print("X: ", hex(P.X.value))
-    # print("Y: ", hex(P.Y.value))
-    # print("Z: ", hex(P.Z.value))
+    print("X: ", hex(P.X.value))
+    print("Y: ", hex(P.Y.value))
+    print("Z: ", hex(P.Z.value))
     M = cofactor_clearing(P)
+    print("X: ", hex(M.X.value))
+    print("Y: ", hex(M.Y.value))
+    print("Z: ", hex(M.Z.value))
     return M
 
 def map_to_curve_BLS12381G1_2iso(t_list: list[list[int]]) -> pointFp:
@@ -147,7 +151,7 @@ def test_SSWU():
 
 if __name__ == "__main__":
     # t_list = hash_to_field("abc".encode("utf-8"), 2)
-    t_list=[[0x14DEF24C5CD6507F034DE23C06827F91A1C1CEA3409B438EB008909EE49C86C4301E0B449708AB6E46F8CE7D050EAF3B], [0x0769F3B27F8E5A84A864A1B6916CEEE5C8C32C7FAAA178C9612D575C883DB63DDC2DB890331E51B1CCF5F1D66DAC2C6D]]
+    t_list=[[0X120C0DEB309E40884487135D107A38A92183D1583FAEC6D2B7401266C7E60D3FCE2EAA45032F9E75DA398BED4F91710C], [0X13119B643EEE18BFEFEDA41FDAF6FA2E556C63D57B651C709BE615116FDA89D3A7C56B0E54E19326D3D14D9FBF7B4090]]
     M = map_to_curve_BLS12381G1(t_list)
     M.check_on_curve()
     MX = M.X / M.Z
@@ -155,6 +159,14 @@ if __name__ == "__main__":
     print("result point: ")
     print("%x" % MX.value)
     print("%x" % MY.value)
+
+    # x = 0x0909068B0C8EC44D096849F0658E4DDC51E31C719F8AA60D41105D3AA4E625844FCB090C028F76E6A9383B78FC8F601A
+    # y = 0x0A1F76813CA36925E22BF21C99BC2392E683E50EEFD27363C3B5DCFB6AA1D3D45B3851406AF6701477AB68B624351587
+    # M_check = pointFp(coord_type="projective", coordinate=[MX, Fp(y), Fp(1)], coefficients=[a, b])
+    # M_check.check_on_curve()
+
+    # x = 0x11ac1cc95f21ac23de22fe9b33b78e3cba593b4ac7ddbe398a6054992d942345dbdd96cd12aaf4b928a4b71e36f9225a
+    # y = 
     # M = map_to_curve_BLS12381G1_2iso(t_list)
     # M.check_on_curve()
     # MX = M.X / M.Z
