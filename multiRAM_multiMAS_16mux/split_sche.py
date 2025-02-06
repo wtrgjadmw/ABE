@@ -15,6 +15,8 @@ def make_split_scheduling(formulas: list[formulaData]):
     outputs: list[str] = []
     input_num = 0
     all_data = []
+    csel_r_data = []
+    csel_w_data = []
     for s in formulas:
         all_data.append(s.result)
         outputs.append(s.result)
@@ -26,16 +28,23 @@ def make_split_scheduling(formulas: list[formulaData]):
                 input_num += 1
             if (operand in outputs) and (re.fullmatch(r"c[0-2]*", operand) is None):
                 outputs.remove(operand)
-    for s in formulas:
         if s.type == "CSEL":
-            outputs += s.operands
-            if s.result not in outputs:
-                outputs.append(s.result)
+            for operand in s.operands:
+                if operand not in csel_r_data:
+                    csel_r_data.append(operand)
+                if operand in all_data:
+                    csel_w_data.append(operand)
+            if s.result not in csel_w_data:
+                csel_r_data.append(s.result)
+                csel_w_data.append(s.result)
 
-
-    input_first = copy.deepcopy(inputs)
     knows = inputs
     all_data += inputs
+
+    inputs = list(set(inputs) | set(csel_r_data))
+    outputs = list(set(outputs) | set(csel_w_data))
+
+    input_first = copy.deepcopy(inputs)
     cnt = 0
     split_ope: list[list[formulaData]] = [[] for i in range(0, 100)]
     split_index = 0
@@ -88,6 +97,6 @@ def make_split_scheduling(formulas: list[formulaData]):
     # input_first = ['t0', 't1', 'A_', 'ONE', 'B_', 'negA_', 'xi', 'xiA', 'Z_Hash0', 'Z_Hash1', 'D0', 'D1']
     # outputs = ['UV30', 'UV31', 'Z_Hash0', 'Z_Hash1', 'UV0', 'UV1', 'V0', 'V1', 'D0', 'D1', 'U0', 'U1', 'N0', 'N1', 't20', 't21', 'xit20', 'xit21']   
     # 2xSSWU_AFTER_EXP
-    input_first = ['UV3_exp0', 'UV0', 'UV3_exp1', 'UV1', 'Z_Hash0', 'Z_Hash1', 'V0', 'V1', 'xit20', 'N0', 'xit21', 'N1', 't20', 't0', 't21', 't1', 'sqrt_negxi3', 'U0', 'U1', 'ZERO', 'alpha2V_U0', 'alpha2V_U1', 'xit2N0', 'xit2N1', 'y0', 'y1', 'alpha0', 'alpha1', 'y20', 'y21', 'y_alt0', 'y_alt1', 'ONE', 'Y_0', 'Y_1']
-    outputs = ['X_Hash0', 'X_Hash1', 'Y_Hash0', 'Y_Hash1', 'xit2N0', 'xit2N1', 'alpha2V_U0', 'y20', 'alpha2V_U1', 'y21', 'y0', 'y_alt0', 'y1', 'y_alt1', 'Y_0', 'Y_1', 'alpha0', 'alpha1'] 
+    # input_first = ['UV3_exp0', 'UV0', 'UV3_exp1', 'UV1', 'Z_Hash0', 'Z_Hash1', 'V0', 'V1', 'xit20', 'N0', 'xit21', 'N1', 't20', 't0', 't21', 't1', 'sqrt_negxi3', 'U0', 'U1', 'ZERO', 'alpha2V_U0', 'alpha2V_U1', 'xit2N0', 'xit2N1', 'y0', 'y1', 'alpha0', 'alpha1', 'y20', 'y21', 'y_alt0', 'y_alt1', 'ONE', 'Y_0', 'Y_1']
+    # outputs = ['X_Hash0', 'X_Hash1', 'Y_Hash0', 'Y_Hash1', 'xit2N0', 'xit2N1', 'alpha2V_U0', 'y20', 'alpha2V_U1', 'y21', 'y0', 'y_alt0', 'y1', 'y_alt1', 'Y_0', 'Y_1', 'alpha0', 'alpha1'] 
     return split_ope_c, input_first, outputs, input_num

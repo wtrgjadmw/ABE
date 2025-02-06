@@ -401,6 +401,7 @@ if __name__ == "__main__":
         # 分割したfomulas
         split_ope, input_value, output_value, input_num = make_split_scheduling(formulas)
         os.makedirs(dir_name, exist_ok=True)
+        # f = open("a.txt", "w")
         f = open(dir_name + "/result.txt", "w")
         print("input = ", file=f, end="")
         print(input_value, file=f)
