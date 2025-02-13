@@ -56,11 +56,8 @@ class ALUInstruction:
     def index2alphabet(self, index: int):
         return chr(65+index)
 
-    def set_mem_read(self, ram_type: str, read_port: str, raddr: int, mask=False):
+    def set_mem_read(self, ram_type: str, read_port: str, raddr: int):
         self.inst_dict["{}_READ{}".format(ram_type, read_port)] = raddr
-        if ram_type == "MAIN":
-            is_masked_addr = mask and 0 <= raddr <= 3
-            self.inst_dict["MAIN_READ_MASK{}".format(read_port)] = 1 if is_masked_addr else 0
 
     def set_operator_init(self, solution_data: solutionData, operand_index, mux):
         # if solution_data.operation == "CSEL":
@@ -74,12 +71,10 @@ class ALUInstruction:
         if "MAS" in solution_data.operator:
             self.inst_dict["{}_ISSUB".format(solution_data.operator)] = 1 if "SUB" == solution_data.operation else 0
 
-    def set_mem_write(self, output_operator, ram_type, waddr: int, mask=False):
+    def set_mem_write(self, output_operator, ram_type, waddr: int):
         self.inst_dict["{}_WRITE".format(ram_type)] = waddr
         self.inst_dict["{}_WE".format(ram_type)] = 1
         if ram_type == "MAIN":
-            is_masked_addr = mask and 0 <= waddr <= 3
-            self.inst_dict["MAIN_WRITE_MASK"] = 1 if is_masked_addr else 0
             if output_operator == "CSEL":
                 self.inst_dict["MAIN_WRITE_MUX"] = 6
             else:
