@@ -82,7 +82,7 @@ if __name__ == "__main__":
     algo_name = "EP2_ADD_w_EVAL"
     mul_stage = 5
     add_stage = 2
-    fix_formulas(algo_name, 1, mul_stage, 4, add_stage)
+    # fix_formulas(algo_name, 1, mul_stage, 4, add_stage)
     config = "stage{ms}MM{mn}_stage{as_}MAS{an}".format(mn=1, ms=mul_stage, an=4, as_=add_stage)
     solution = []
     result_file_path = "./scheduling_result/{}/{}/result.txt".format(config, algo_name)
