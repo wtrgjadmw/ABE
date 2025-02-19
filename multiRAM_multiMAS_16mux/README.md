@@ -36,3 +36,7 @@
     ```shell
     $ python write_sequence.py -mn <number_of_MM> -ms <stages_of_MM> -an <number_of_MAS> -as <stages_of_MAS> -n <algorithm_name>
     ```
+
+3. Add mask flag, CondKey flag, continue, end flag
+
+    paste gererated file content (the list of 174bit instructions) to **bin2Inst sheet** of [this spreadsheet](https://docs.google.com/spreadsheets/d/1Hq9TszX-h9vUatOc7cbgzMGooDy6T9njvIKRiiZDkrQ/edit?usp=sharing), and modify column C~I.
